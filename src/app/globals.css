@@ -1,0 +1,10 @@
+/* FILE: src/app/globals.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: Add any global base styles here */
+body {
+  @apply bg-background text-gray-800 antialiased;
+}
