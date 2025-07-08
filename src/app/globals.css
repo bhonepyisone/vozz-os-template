@@ -4,7 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Optional: Add any global base styles here */
 body {
-  @apply bg-background text-gray-800 antialiased;
+  /* Use the new neo-bg color and Segoe UI font */
+  @apply bg-neo-bg text-gray-700 antialiased;
+  font-family: 'Segoe UI', sans-serif;
 }

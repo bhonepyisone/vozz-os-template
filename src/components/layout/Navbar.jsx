@@ -2,32 +2,64 @@
 
 'use client';
 
-import { Search, Bell, UserCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useAuthStore } from '@/lib/auth';
+import { db } from '@/lib/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { Bell, UserCircle, Shield } from 'lucide-react';
+import NotificationPanel from './NotificationPanel';
+
+const NeumorphismIconButton = ({ children, className = '', ...props }) => (
+    <button {...props} className={`w-12 h-12 flex items-center justify-center bg-neo-bg rounded-full shadow-neo-md text-gray-600 hover:text-primary active:shadow-neo-inset transition-all ${className}`}>
+        {children}
+    </button>
+);
 
 export default function Navbar() {
-  return (
-    <header className="h-20 bg-white border-b flex items-center justify-between px-8">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search..."
-          className="pl-10 pr-4 py-2 w-64 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-      </div>
+  const { user } = useAuthStore();
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
-      {/* User Menu */}
+  // Listen to the notifications collection to get a live count
+  useEffect(() => {
+    const notifsRef = collection(db, 'notifications');
+    const unsubscribe = onSnapshot(notifsRef, (snapshot) => {
+      setNotificationCount(snapshot.size);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  return (
+    <header className="h-20 bg-neo-bg flex items-center justify-end px-8">
       <div className="flex items-center space-x-6">
-        <button className="relative text-gray-500 hover:text-primary">
-          <Bell className="w-6 h-6" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
-        </button>
-        <div className="flex items-center space-x-2">
+        {user?.role === 'Admin' && (
+          <Link href="/admin">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-neo-bg rounded-lg shadow-neo-md text-gray-700 font-semibold hover:text-primary active:shadow-neo-inset transition-colors">
+              <Shield className="w-5 h-5" />
+              <span>Admin Panel</span>
+            </button>
+          </Link>
+        )}
+
+        <div className="relative">
+            <NeumorphismIconButton onClick={() => setIsNotifOpen(prev => !prev)}>
+                <Bell className="w-6 h-6" />
+            </NeumorphismIconButton>
+            {/* The notification count is now dynamic */}
+            {notificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-neo-bg">
+                {notificationCount}
+              </span>
+            )}
+            <NotificationPanel isOpen={isNotifOpen} />
+        </div>
+
+        <div className="flex items-center space-x-3 bg-neo-bg shadow-neo-md p-2 rounded-full">
            <UserCircle className="w-10 h-10 text-gray-400" />
-           <div>
-             <p className="text-sm font-semibold text-gray-800">Admin User</p>
-             <p className="text-xs text-gray-500">Administrator</p>
+           <div className="pr-2">
+             <p className="text-sm font-semibold text-gray-800">{user?.name || 'Guest'}</p>
+             <p className="text-xs text-gray-500">{user?.role || 'No Role'}</p>
            </div>
         </div>
       </div>

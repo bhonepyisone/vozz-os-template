@@ -4,20 +4,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/auth';
 import {
-  LayoutDashboard,
-  ShoppingCart,
-  BookOpen,
-  Boxes,
-  CalendarCheck,
-  Heart,
-  Users,
-  Banknote,
-  BarChart2,
-  Settings,
-  Shield,
-  LogOut,
+  LayoutDashboard, ShoppingCart, BookOpen, Boxes, CalendarCheck,
+  Heart, Users, Banknote, BarChart2, Settings, Shield, LogOut, 
+  CalendarClock, ClipboardList, ArrowLeftToLine, ReceiptText
 } from 'lucide-react';
 
 const navLinks = [
@@ -25,9 +17,11 @@ const navLinks = [
   { href: '/pos', label: 'POS', icon: ShoppingCart },
   { href: '/menu', label: 'Menu', icon: BookOpen },
   { href: '/inventory', label: 'Inventory', icon: Boxes },
+  { href: '/schedule', label: 'Schedule', icon: CalendarClock },
   { href: '/attendance', label: 'Attendance', icon: CalendarCheck },
   { href: '/crm', label: 'CRM', icon: Heart },
   { href: '/hrm', label: 'HRM', icon: Users },
+  { href: '/reimbursements', label: 'Reimbursements', icon: ReceiptText },
   { href: '/financials', label: 'Financials', icon: Banknote },
   { href: '/reports', label: 'Reports', icon: BarChart2 },
   { href: '/settings', label: 'Settings', icon: Settings },
@@ -37,39 +31,46 @@ const adminLinks = [
     { href: '/admin', label: 'Admin Dashboard', icon: Shield },
     { href: '/admin/shops', label: 'Shop Management', icon: Boxes },
     { href: '/admin/users', label: 'User Management', icon: Users },
+    { href: '/admin/checklists', label: 'Checklists', icon: ClipboardList },
     { href: '/admin/system', label: 'System Settings', icon: Settings },
 ]
 
 export default function Sidebar({ isAdmin = false }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuthStore();
   const links = isAdmin ? adminLinks : navLinks;
-  const bgColor = isAdmin ? 'bg-gray-800' : 'bg-sidebar-bg';
-  const textColor = isAdmin ? 'text-gray-200' : 'text-sidebar-text';
-  const hoverBg = isAdmin ? 'hover:bg-gray-700' : 'hover:bg-gray-700';
-  const activeBg = isAdmin ? 'bg-primary' : 'bg-primary';
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
+  };
 
   return (
-    <aside className={`w-64 ${bgColor} text-white flex flex-col`}>
-      <div className="flex items-center justify-center h-20 border-b border-gray-700">
+    // FIX: Replaced the simple border with a more prominent shadow to make the sidebar stand out with a 3D effect.
+    <aside className="w-64 bg-neo-bg flex flex-col shadow-neo-lg z-10">
+      <div className="flex items-center justify-center h-20">
          <Image 
           src="/assets/images/logo.png"
           alt="Vozz OS Logo"
           width={40}
           height={40}
-          onError={(e) => { e.currentTarget.src = 'https://placehold.co/40x40/ffffff/1F2937?text=V'; }}
+          onError={(e) => { e.currentTarget.src = 'https://placehold.co/40x40/3b82f6/white?text=V'; }}
         />
-        <h1 className="text-xl font-bold ml-2">Vozz OS</h1>
+        <h1 className="text-xl font-bold ml-2 text-gray-700">Vozz OS</h1>
       </div>
       <nav className="flex-1 px-4 py-4 space-y-2">
         {links.map((link) => {
-          const isActive = pathname.startsWith(link.href) && (link.href !== '/dashboard' || pathname === '/dashboard');
+          const isActive = pathname.startsWith(link.href);
           const Icon = link.icon;
           return (
             <Link
               key={link.label}
               href={link.href}
-              className={`flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 ${textColor} ${hoverBg} ${
-                isActive ? `${activeBg} text-white` : ''
+              className={`flex items-center px-4 py-2.5 rounded-lg transition-all duration-200 ${
+                isActive 
+                  ? 'bg-neo-bg shadow-neo-inset-active text-primary' 
+                  : 'text-gray-600 hover:text-primary'
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -78,8 +79,20 @@ export default function Sidebar({ isAdmin = false }) {
           );
         })}
       </nav>
-      <div className="px-4 py-4 border-t border-gray-700">
-        <button className={`flex items-center w-full px-4 py-2.5 rounded-lg transition-colors duration-200 ${textColor} ${hoverBg}`}>
+      {/* FIX: Updated the bottom buttons to match the Neumorphism theme */}
+      <div className="px-4 py-4 border-t border-neo-dark/30 space-y-2">
+        {isAdmin && (
+          <Link href="/dashboard">
+            <div className="flex items-center w-full px-4 py-2.5 rounded-lg text-green-600 hover:text-primary transition-all duration-200 active:shadow-neo-inset-active">
+              <ArrowLeftToLine className="w-5 h-5" />
+              <span className="ml-4 text-sm font-medium">Return to Dashboard</span>
+            </div>
+          </Link>
+        )}
+        <button 
+          onClick={handleLogout} 
+          className="flex items-center w-full px-4 py-2.5 rounded-lg text-gray-600 hover:text-primary transition-all duration-200 active:shadow-neo-inset-active"
+        >
           <LogOut className="w-5 h-5" />
           <span className="ml-4 text-sm font-medium">Logout</span>
         </button>

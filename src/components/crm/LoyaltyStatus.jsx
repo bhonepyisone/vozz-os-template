@@ -3,18 +3,18 @@
 'use client';
 
 import { Star, TrendingUp } from 'lucide-react';
+import Card from '@/components/ui/Card';
 
-// Tier requirements
 const TIERS = {
-  BRONZE: { name: 'Bronze', minSpend: 0, color: 'text-orange-500' },
-  SILVER: { name: 'Silver', minSpend: 20000, color: 'text-gray-500' },
-  GOLD: { name: 'Gold', minSpend: 50000, color: 'text-yellow-500' },
+  BRONZE: { name: 'Bronze', minSpend: 0, color: 'text-orange-700' },
+  SILVER: { name: 'Silver', minSpend: 20000, color: 'text-gray-600' },
+  GOLD: { name: 'Gold', minSpend: 50000, color: 'text-yellow-600' },
 };
 
 const getNextTier = (currentSpend) => {
   if (currentSpend < TIERS.SILVER.minSpend) return TIERS.SILVER;
   if (currentSpend < TIERS.GOLD.minSpend) return TIERS.GOLD;
-  return null; // Already at the highest tier
+  return null;
 };
 
 export default function LoyaltyStatus({ customerName, currentSpend, currentTier }) {
@@ -32,9 +32,9 @@ export default function LoyaltyStatus({ customerName, currentSpend, currentTier 
   }
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-lg">
+    <Card title="Loyalty Status">
       <h2 className="text-xl font-semibold text-gray-800 mb-1">{customerName}</h2>
-      <p className="text-sm text-gray-500 mb-4">Loyalty Status</p>
+      <p className="text-sm text-gray-500 mb-4">Current Status</p>
 
       <div className="flex items-center mb-4">
         <Star className={`w-10 h-10 mr-4 ${TIERS[currentTier.toUpperCase()]?.color || 'text-gray-400'}`} />
@@ -50,7 +50,8 @@ export default function LoyaltyStatus({ customerName, currentSpend, currentTier 
             <span>Progress to {nextTier.name}</span>
             <span>{Math.round(progress)}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+          {/* Themed progress bar */}
+          <div className="w-full bg-neo-bg rounded-full h-2.5 shadow-neo-inset">
             <div className="bg-primary h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
           </div>
           <p className="text-xs text-gray-500 mt-2 text-center">
@@ -62,6 +63,6 @@ export default function LoyaltyStatus({ customerName, currentSpend, currentTier 
           <TrendingUp className="w-4 h-4 mr-2"/> You are at the highest tier!
         </div>
       )}
-    </div>
+    </Card>
   );
 }

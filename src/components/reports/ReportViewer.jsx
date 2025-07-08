@@ -2,50 +2,49 @@
 
 'use client';
 
-import { useState } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import Card from '@/components/ui/Card';
 
-// In a real app, these components would be imported
-const SalesReport = () => <div className="p-4 bg-gray-50 rounded-lg">Displaying detailed sales analytics...</div>;
-const InventoryReport = () => <div className="p-4 bg-gray-50 rounded-lg">Displaying stock valuation and turnover rates...</div>;
-const FinancialReport = () => <div className="p-4 bg-gray-50 rounded-lg">Displaying Profit & Loss and expense summaries...</div>;
+const FinancialReport = ({ data }) => {
+  if (!data) return null;
 
-const reportComponents = {
-  sales: <SalesReport />,
-  inventory: <InventoryReport />,
-  financials: <FinancialReport />,
-};
-
-export default function ReportViewer() {
-  const [selectedReport, setSelectedReport] = useState('sales');
-
-  const ReportComponent = reportComponents[selectedReport];
+  const netProfit = data.totalRevenue - data.totalExpenses;
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-lg">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 flex items-center">
-          <FileText className="w-6 h-6 mr-3 text-primary" />
-          Report Viewer
-        </h2>
-        <div>
-          <label htmlFor="reportType" className="sr-only">Select Report</label>
-          <select
-            id="reportType"
-            value={selectedReport}
-            onChange={(e) => setSelectedReport(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
-          >
-            <option value="sales">Sales Analytics</option>
-            <option value="inventory">Inventory Report</option>
-            <option value="financials">Financial Report</option>
-          </select>
+    <div className="p-4 bg-neo-bg shadow-neo-inset rounded-lg space-y-4">
+      <h3 className="text-lg font-semibold text-gray-700">Financial Summary</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+        <div className="p-4 bg-neo-bg rounded-lg shadow-neo-md">
+          <p className="text-sm text-green-700">Total Revenue</p>
+          <p className="text-2xl font-bold text-green-800">{formatCurrency(data.totalRevenue)}</p>
+        </div>
+        <div className="p-4 bg-neo-bg rounded-lg shadow-neo-md">
+          <p className="text-sm text-red-700">Total Expenses</p>
+          <p className="text-2xl font-bold text-red-800">{formatCurrency(data.totalExpenses)}</p>
+        </div>
+        <div className={`p-4 bg-neo-bg rounded-lg shadow-neo-md`}>
+          <p className={`text-sm ${netProfit >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>Net Profit</p>
+          <p className={`text-2xl font-bold ${netProfit >= 0 ? 'text-blue-800' : 'text-orange-800'}`}>{formatCurrency(netProfit)}</p>
         </div>
       </div>
-      
-      <div>
-        {ReportComponent}
-      </div>
     </div>
+  );
+};
+
+export default function ReportViewer({ isLoading, reportData }) {
+  return (
+    <Card title="Financial Report">
+      <div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            <p className="ml-4 text-gray-500">Generating report...</p>
+          </div>
+        ) : (
+          <FinancialReport data={reportData} />
+        )}
+      </div>
+    </Card>
   );
 }

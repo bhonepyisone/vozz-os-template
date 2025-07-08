@@ -2,8 +2,9 @@
 
 export default function AuthLayout({ children }) {
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg">
+    <main className="flex items-center justify-center min-h-screen bg-neo-bg p-4">
+      {/* The main container with the Neumorphism shadow */}
+      <div className="w-full max-w-sm p-8 bg-neo-bg rounded-2xl shadow-neo-lg">
         {children}
       </div>
     </main>
