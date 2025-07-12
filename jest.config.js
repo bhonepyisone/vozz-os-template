@@ -1,5 +1,3 @@
-
-
 module.exports = {
   testEnvironment: 'jest-environment-jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
@@ -10,5 +8,5 @@ module.exports = {
   transform: {
     '^.+\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
+  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/functions/', '<rootDir>/vozz-os/'],
 };
-
