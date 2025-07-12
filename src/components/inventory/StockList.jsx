@@ -5,7 +5,10 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
-import Card from '@/components/ui/Card'; // Use the themed Card
+import { useTranslation } from 'react-i18next';
+import Card from '@/components/ui/Card';
+import { Edit, Trash2 } from 'lucide-react';
+import NeumorphismButton from '@/components/ui/NeumorphismButton';
 
 const StockLevelIndicator = ({ current, min }) => {
   const percentage = Math.min((current / (min * 2)) * 100, 100);
@@ -20,7 +23,8 @@ const StockLevelIndicator = ({ current, min }) => {
   );
 };
 
-export default function StockList() {
+export default function StockList({ onEdit, onDelete }) {
+  const { t } = useTranslation('common');
   const [inventory, setInventory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,14 +48,15 @@ export default function StockList() {
   }
 
   return (
-    <Card title="Current Stock Levels">
+    <Card title={t('CurrentStockLevels')}>
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
             <tr>
-              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">Item Name</th>
-              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">Stock Level</th>
-              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">Current / Min Stock</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('ItemName')}</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('StockLevel')}</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('CurrentMinStock')}</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('Actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -63,6 +68,16 @@ export default function StockList() {
                 </td>
                 <td className="py-4 whitespace-nowrap text-sm text-gray-500">
                   {item.currentStock} / {item.minStock} {item.unit}
+                </td>
+                <td className="py-4 whitespace-nowrap text-sm">
+                  <div className="flex space-x-2">
+                    <NeumorphismButton onClick={() => onEdit(item)} className="!w-auto !p-2 !rounded-full !text-blue-600">
+                      <Edit className="w-4 h-4" />
+                    </NeumorphismButton>
+                    <NeumorphismButton onClick={() => onDelete(item)} className="!w-auto !p-2 !rounded-full !text-red-600">
+                      <Trash2 className="w-4 h-4" />
+                    </NeumorphismButton>
+                  </div>
                 </td>
               </tr>
             ))}

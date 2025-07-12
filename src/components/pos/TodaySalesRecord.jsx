@@ -34,7 +34,7 @@ export default function TodaySalesRecord() {
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Today's Sales</h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Today&apos;s Sales</h2>
       <div className="space-y-3 max-h-64 overflow-y-auto">
         {isLoading && <p>Loading sales...</p>}
         {!isLoading && sales.length === 0 && <p>No sales recorded yet today.</p>}

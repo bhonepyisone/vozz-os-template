@@ -7,12 +7,14 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, Timestamp, orderBy } from 'firebase/firestore';
 import { formatDate } from '@/lib/utils';
 import { endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { Banknote, CreditCard } from 'lucide-react';
-import ExportButton from '@/components/ui/ExportButton'; // Import the new component
+import ExportButton from '@/components/ui/ExportButton';
 
 const timeframes = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
 
 export default function SalesRecord() {
+  const { t } = useTranslation('common');
   const [sales, setSales] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTimeframe, setActiveTimeframe] = useState('Daily');
@@ -65,17 +67,15 @@ export default function SalesRecord() {
       let totalCash = 0;
       let totalCard = 0;
       salesList.forEach(sale => {
+        const amount = sale.totalAmount || 0;
         if (sale.paymentMethod === 'Card') {
-          totalCard += sale.totalAmount;
+          totalCard += amount;
         } else {
-          totalCash += sale.totalAmount;
+          totalCash += amount;
         }
       });
       setTotals({ cash: totalCash, card: totalCard, grandTotal: totalCash + totalCard });
 
-      setIsLoading(false);
-    }, (error) => {
-      console.error("Error fetching sales record:", error);
       setIsLoading(false);
     });
 
@@ -93,7 +93,7 @@ export default function SalesRecord() {
   return (
     <div className="bg-neo-bg p-6 rounded-2xl shadow-neo-lg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">Sales Record</h2>
+        <h2 className="text-xl font-semibold text-gray-700">{t('SalesRecord')}</h2>
         <div className="flex items-center bg-neo-bg p-1 rounded-lg shadow-neo-inset-active">
           {timeframes.map(frame => (
             <button 
@@ -103,34 +103,34 @@ export default function SalesRecord() {
                 activeTimeframe === frame ? 'bg-neo-bg shadow-neo-md text-primary' : 'text-gray-600'
               }`}
             >
-              {frame}
+              {t(frame)}
             </button>
           ))}
         </div>
       </div>
       <div className="mb-4 pt-4 border-t border-neo-dark/20">
         <div className="flex justify-between items-center">
-            <h3 className="text-md font-semibold text-gray-700">Totals for Period</h3>
+            <h3 className="text-md font-semibold text-gray-700">{t('TotalsForPeriod')}</h3>
             <ExportButton data={sales} headers={csvHeaders} filename={`sales_${activeTimeframe}.csv`} />
         </div>
         <div className="flex justify-around text-center mt-2">
           <div>
-            <p className="text-sm text-gray-500">Total Cash</p>
+            <p className="text-sm text-gray-500">{t('TotalCash')}</p>
             <p className="text-lg font-bold text-green-600">{totals.cash.toFixed(2)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Total Card</p>
+            <p className="text-sm text-gray-500">{t('TotalCard')}</p>
             <p className="text-lg font-bold text-blue-600">{totals.card.toFixed(2)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Grand Total</p>
+            <p className="text-sm text-gray-500">{t('GrandTotal')}</p>
             <p className="text-lg font-bold text-gray-900">{totals.grandTotal.toFixed(2)}</p>
           </div>
         </div>
       </div>
       <div className="space-y-3 max-h-64 overflow-y-auto pt-4">
         {isLoading && <p>Loading sales...</p>}
-        {!isLoading && sales.length === 0 && <p>No sales recorded for this period.</p>}
+        {!isLoading && sales.length === 0 && <p>{t('NoSalesForPeriod')}</p>}
         {sales.map(sale => (
           <div key={sale.id} className="p-3 border border-neo-dark/20 rounded-lg">
             <div className="flex justify-between items-center">

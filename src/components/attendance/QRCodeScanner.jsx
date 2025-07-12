@@ -2,72 +2,99 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
-import { ScanLine } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import Card from '@/components/ui/Card';
-import NeumorphismButton from '@/components/ui/NeumorphismButton';
 
 export default function QRCodeScanner() {
-  const [scannedData, setScannedData] = useState(null);
-  const [isScanning, setIsScanning] = useState(false);
-  const [lastScanMessage, setLastScanMessage] = useState('');
+  const { t } = useTranslation('common');
+  const [scanResult, setScanResult] = useState(null);
+  const [scanError, setScanError] = useState('');
 
-  const handleScan = async () => {
-    setIsScanning(true);
-    setScannedData(null);
-    setLastScanMessage('');
+  useEffect(() => {
+    // Initialize the scanner
+    const scanner = new Html5QrcodeScanner(
+      'reader', // The ID of the div element to render the scanner
+      {
+        qrbox: {
+          width: 250,
+          height: 250,
+        },
+        fps: 5, // Scans per second
+      },
+      false // verbose = false
+    );
 
-    console.log("Starting QR code scan...");
+    let isScanning = true;
 
-    setTimeout(async () => {
-      const mockQrValue = JSON.stringify({
-        staffId: 'staff-01',
-        shopId: 'main-shop',
-        timestamp: Date.now(),
-      });
-      
-      try {
-        const data = JSON.parse(mockQrValue);
-        setScannedData(data);
-
-        await addDoc(collection(db, 'attendance'), {
-          staffId: data.staffId,
-          shopId: data.shopId,
-          scannedAt: Timestamp.now(),
-          type: 'Clock-In/Out',
-        });
+    // --- Success Callback ---
+    // This function runs when a QR code is successfully scanned
+    const onScanSuccess = async (decodedText, decodedResult) => {
+      if (isScanning) {
+        isScanning = false; // Prevent multiple scans of the same code
+        scanner.clear(); // Stop the scanner
         
-        setLastScanMessage(`Successfully recorded attendance for ${data.staffId}.`);
+        try {
+          const qrData = JSON.parse(decodedText);
+          // Validate the scanned data
+          if (qrData.staffId && qrData.name && qrData.position) {
+            setScanResult(`Success! Clocked in: ${qrData.name} (${qrData.position})`);
+            setScanError('');
 
-      } catch (error) {
-        console.error("Error processing scan:", error);
-        setLastScanMessage("Failed to record attendance.");
-      } finally {
-        setIsScanning(false);
+            // Save the attendance record to Firestore
+            await addDoc(collection(db, 'attendance'), {
+              staffId: qrData.staffId,
+              staffName: qrData.name,
+              position: qrData.position,
+              scannedAt: Timestamp.now(),
+              type: 'Clock-In/Out',
+            });
+          } else {
+            throw new Error("Invalid QR code format.");
+          }
+        } catch (error) {
+          console.error("Error processing QR code:", error);
+          setScanError("Failed to process an invalid QR code.");
+          setScanResult(null);
+        }
       }
-    }, 2000);
-  };
+    };
+
+    // --- Error Callback ---
+    // This function can be used for debugging, but we can ignore most errors
+    const onScanFailure = (error) => {
+      // console.warn(`Code scan error = ${error}`);
+    };
+
+    scanner.render(onScanSuccess, onScanFailure);
+
+    // --- Cleanup Function ---
+    // This is crucial to stop the camera when the component is unmounted
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(error => {
+          console.error("Failed to clear html5-qrcode scanner.", error);
+        });
+      }
+    };
+  }, []);
 
   return (
-    <Card title="Scan Staff QR Code">
-      {/* Themed "camera feed" placeholder */}
-      <div className="w-full h-64 bg-gray-900 rounded-lg flex items-center justify-center text-white mb-4 shadow-neo-inset">
-        {isScanning ? "Scanning..." : "Camera feed appears here"}
-      </div>
-
-      <NeumorphismButton
-        onClick={handleScan}
-        disabled={isScanning}
-      >
-        <ScanLine className="w-5 h-5" />
-        <span>{isScanning ? 'Scanning...' : 'Start Scan'}</span>
-      </NeumorphismButton>
-
-      {lastScanMessage && (
-        <div className={`mt-4 p-3 text-sm rounded-lg ${scannedData ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-          {lastScanMessage}
+    <Card title={t('ScanStaffQRCode')}>
+      {/* The scanner library will render the camera feed inside this div */}
+      <div id="reader" className="w-full"></div>
+      
+      {scanResult && (
+        <div className="mt-4 p-3 text-sm rounded-lg bg-green-100 text-green-800">
+          {scanResult}
+        </div>
+      )}
+      {scanError && (
+        <div className="mt-4 p-3 text-sm rounded-lg bg-red-100 text-red-800">
+          {scanError}
         </div>
       )}
     </Card>

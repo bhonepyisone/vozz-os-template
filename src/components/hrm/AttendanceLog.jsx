@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, Timestamp, orderBy } from 'firebase/firestore';
 import { formatDate } from '@/lib/utils';
 import { endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { CalendarClock } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import ExportButton from '@/components/ui/ExportButton';
@@ -14,6 +15,7 @@ import ExportButton from '@/components/ui/ExportButton';
 const timeframes = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
 
 export default function AttendanceLog() {
+  const { t } = useTranslation('common');
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTimeframe, setActiveTimeframe] = useState('Daily');
@@ -62,6 +64,9 @@ export default function AttendanceLog() {
       }));
       setRecords(recordList);
       setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching attendance records:", error);
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
@@ -77,27 +82,27 @@ export default function AttendanceLog() {
   return (
     <Card>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">Attendance Log</h2>
+        <h2 className="text-xl font-semibold text-gray-700">{t('AttendanceLog')}</h2>
         <div className="flex items-center space-x-2">
-            <div className="flex items-center bg-neo-bg p-1 rounded-lg shadow-neo-inset-active">
-                {timeframes.map(frame => (
-                    <button 
-                    key={frame}
-                    onClick={() => setActiveTimeframe(frame)}
-                    className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
-                        activeTimeframe === frame ? 'bg-neo-bg shadow-neo-md text-primary' : 'text-gray-600'
-                    }`}
-                    >
-                    {frame}
-                    </button>
-                ))}
-            </div>
-            <ExportButton data={records} headers={csvHeaders} filename={`attendance_${activeTimeframe}.csv`} />
+          <div className="flex items-center bg-neo-bg p-1 rounded-lg shadow-neo-inset-active">
+            {timeframes.map(frame => (
+              <button 
+                key={frame}
+                onClick={() => setActiveTimeframe(frame)}
+                className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
+                  activeTimeframe === frame ? 'bg-neo-bg shadow-neo-md text-primary' : 'text-gray-600'
+                }`}
+              >
+                {t(frame)}
+              </button>
+            ))}
+          </div>
+          <ExportButton data={records} headers={csvHeaders} filename={`attendance_${activeTimeframe}.csv`} />
         </div>
       </div>
       <div className="space-y-3 max-h-96 overflow-y-auto">
         {isLoading && <p>Loading records...</p>}
-        {!isLoading && records.length === 0 && <p>No attendance records for this period.</p>}
+        {!isLoading && records.length === 0 && <p>{t('NoAttendanceForPeriod')}</p>}
         {records.map(record => (
           <div key={record.id} className="p-3 border border-neo-dark/20 rounded-lg flex justify-between items-center">
             <div className="flex items-center">

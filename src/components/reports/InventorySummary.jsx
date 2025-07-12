@@ -5,11 +5,13 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import NeumorphismButton from '@/components/ui/NeumorphismButton';
 
 export default function InventorySummary() {
+  const { t } = useTranslation('common');
   const [lowStockItems, setLowStockItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -21,23 +23,20 @@ export default function InventorySummary() {
       const filteredLowStock = items.filter(item => item.currentStock <= item.minStock);
       setLowStockItems(filteredLowStock);
       setIsLoading(false);
-    }, (error) => {
-      console.error("Error fetching inventory summary:", error);
-      setIsLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
   return (
-    <Card title="Inventory Summary">
+    <Card title={t('InventorySummary')}>
       {isLoading ? (
         <div className="flex items-center justify-center h-full">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />
         </div>
       ) : (
         <div className="h-full">
-          <h3 className="font-semibold text-gray-700 mb-2">Low Stock Items</h3>
+          <h3 className="font-semibold text-gray-700 mb-2">{t('LowStockItems')}</h3>
           {lowStockItems.length > 0 ? (
             <div className="space-y-3">
               {lowStockItems.map(item => (
@@ -47,19 +46,19 @@ export default function InventorySummary() {
                     <div>
                       <p className="font-semibold text-gray-800">{item.name}</p>
                       <p className="text-sm text-gray-600">
-                        Stock: {item.currentStock} / {item.minStock} {item.unit}
+                        {t('StockLevel')}: {item.currentStock} / {item.minStock} {item.unit}
                       </p>
                     </div>
                   </div>
                   <NeumorphismButton className="!w-auto !px-3 !py-1 !text-xs">
-                    Reorder
+                    {t('Reorder')}
                   </NeumorphismButton>
                 </div>
               ))}
             </div>
           ) : (
             <p className="text-center text-gray-500 h-full flex items-center justify-center">
-              No items are currently low on stock.
+              {t('NoLowStockItems')}
             </p>
           )}
         </div>

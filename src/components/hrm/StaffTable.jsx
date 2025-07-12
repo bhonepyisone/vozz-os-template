@@ -5,12 +5,15 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import { User, Mail, Shield, Calendar, Edit, Trash2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import NeumorphismButton from '@/components/ui/NeumorphismButton';
 import { formatDate } from '@/lib/utils';
+import ExportButton from '@/components/ui/ExportButton';
 
 const StatusBadge = ({ status }) => {
+  const { t } = useTranslation('common');
   const statusColors = {
     Active: 'text-green-800 bg-green-100',
     'On Leave': 'text-yellow-800 bg-yellow-100',
@@ -18,12 +21,13 @@ const StatusBadge = ({ status }) => {
   };
   return (
     <span className={`px-2.5 py-1 text-xs font-bold rounded-full bg-neo-bg shadow-neo-md ${statusColors[status] || 'bg-gray-100'}`}>
-      {status}
+      {t(status)}
     </span>
   );
 };
 
 export default function StaffTable({ onEdit, onDelete }) {
+  const { t } = useTranslation('common');
   const [staff, setStaff] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -42,22 +46,34 @@ export default function StaffTable({ onEdit, onDelete }) {
     return () => unsubscribe();
   }, []);
 
+  const csvHeaders = [
+    { label: "Staff ID", key: "id" },
+    { label: "Name", key: "name" },
+    { label: "Email", key: "email" },
+    { label: "Role", key: "role" },
+    { label: "Join Date", key: "joinDate" },
+  ];
+
   if (isLoading) {
     return <div className="text-center text-gray-500 py-10">Loading staff...</div>;
   }
 
   return (
-    <Card title="Staff Directory">
+    <Card>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-700">{t('StaffDirectory')}</h2>
+        <ExportButton data={staff} headers={csvHeaders} filename="staff_directory.csv" />
+      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
             <tr>
-              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase"><User className="inline w-4 h-4 mr-1"/>Name</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase"><User className="inline w-4 h-4 mr-1"/>{t('FullName')}</th>
               <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase"><Mail className="inline w-4 h-4 mr-1"/>Email</th>
-              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase"><Shield className="inline w-4 h-4 mr-1"/>Role</th>
-              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase"><Calendar className="inline w-4 h-4 mr-1"/>Join Date</th>
-              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase"><Shield className="inline w-4 h-4 mr-1"/>{t('Role')}</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase"><Calendar className="inline w-4 h-4 mr-1"/>{t('JoinDate')}</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('Status')}</th>
+              <th className="py-3 text-left text-xs font-semibold text-gray-500 uppercase">{t('Actions')}</th>
             </tr>
           </thead>
           <tbody>

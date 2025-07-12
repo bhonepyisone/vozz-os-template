@@ -6,7 +6,8 @@ import Modal from './Modal';
 import NeumorphismButton from './NeumorphismButton';
 import { CheckCircle } from 'lucide-react';
 
-export default function SuccessModal({ isOpen, onClose, title = "Success!", children }) {
+// It now accepts an 'actions' prop to render extra buttons
+export default function SuccessModal({ isOpen, onClose, title = "Success!", children, actions }) {
   if (!isOpen) return null;
 
   return (
@@ -22,8 +23,10 @@ export default function SuccessModal({ isOpen, onClose, title = "Success!", chil
           </div>
         </div>
       </div>
-      <div className="mt-5 sm:mt-6">
-        <NeumorphismButton onClick={onClose}>
+      <div className="mt-5 sm:mt-6 space-y-2">
+        {/* Render any extra action buttons here */}
+        {actions}
+        <NeumorphismButton onClick={onClose} className="!text-gray-700">
           OK
         </NeumorphismButton>
       </div>

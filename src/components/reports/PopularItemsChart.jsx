@@ -5,11 +5,13 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Loader2 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 
 export default function PopularItemsChart() {
+  const { t } = useTranslation('common');
   const [itemData, setItemData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,7 +50,7 @@ export default function PopularItemsChart() {
   }, []);
 
   return (
-    <Card title="Popular Menu Items">
+    <Card title={t('PopularMenuItems')}>
       {isLoading ? (
         <div className="flex items-center justify-center h-full">
           <Loader2 className="w-8 h-8 text-primary animate-spin" />

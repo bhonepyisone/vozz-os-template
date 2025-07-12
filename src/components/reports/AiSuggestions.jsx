@@ -13,8 +13,8 @@ export default function AiSuggestions({ reportData }) {
   const [error, setError] = useState('');
 
   const getAiSuggestions = async () => {
-    if (!reportData) {
-      setError("No report data available to analyze.");
+    if (!reportData || typeof reportData.totalRevenue !== 'number' || typeof reportData.totalExpenses !== 'number') {
+      setError("Report data is not available or invalid. Please wait for the report to load.");
       return;
     }
     
@@ -35,10 +35,15 @@ export default function AiSuggestions({ reportData }) {
     `;
 
     try {
+      // FIX: Read the API key from the environment variables.
+      const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("Gemini API key is not configured.");
+      }
+
       let chatHistory = [];
       chatHistory.push({ role: "user", parts: [{ text: prompt }] });
       const payload = { contents: chatHistory };
-      const apiKey = "" // API key is handled by the environment
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
       
       const response = await fetch(apiUrl, {
@@ -47,11 +52,12 @@ export default function AiSuggestions({ reportData }) {
         body: JSON.stringify(payload)
       });
 
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        console.error("Gemini API Error:", result);
+        throw new Error(result.error?.message || `API request failed with status ${response.status}`);
+      }
 
       if (result.candidates && result.candidates.length > 0 &&
           result.candidates[0].content && result.candidates[0].content.parts &&
@@ -64,7 +70,7 @@ export default function AiSuggestions({ reportData }) {
 
     } catch (err) {
       console.error("Error fetching AI suggestions:", err);
-      setError("Sorry, I couldn't generate suggestions at this time. Please try again later.");
+      setError(`Sorry, I couldn't generate suggestions. Error: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +80,7 @@ export default function AiSuggestions({ reportData }) {
     <Card title="AI-Powered Suggestions">
       <NeumorphismButton
         onClick={getAiSuggestions}
-        disabled={isLoading}
+        disabled={isLoading || !reportData}
         className="!text-secondary"
       >
         <Sparkles className="w-5 h-5" />
@@ -89,8 +95,7 @@ export default function AiSuggestions({ reportData }) {
         )}
         {error && <div className="p-3 text-sm text-red-700 bg-red-100 rounded-md">{error}</div>}
         {suggestions && (
-          <div className="p-4 bg-neo-bg shadow-neo-inset rounded-lg text-sm text-gray-700">
-            {/* Using a div with dangerouslySetInnerHTML to render markdown, be cautious with this in production */}
+          <div className="p-4 bg-neo-bg shadow-neo-inset rounded-lg text-sm text-gray-700 prose prose-sm max-w-none">
             <div dangerouslySetInnerHTML={{ __html: suggestions.replace(/\n/g, '<br />') }} />
           </div>
         )}

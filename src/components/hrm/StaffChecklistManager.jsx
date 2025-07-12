@@ -5,12 +5,14 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, doc, updateDoc, where, query } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Circle, PlusCircle } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import NeumorphismSelect from '@/components/ui/NeumorphismSelect';
 import NeumorphismButton from '@/components/ui/NeumorphismButton';
 
-export default function StaffChecklistManager() {
+export default function StaffChecklistManager({ setSuccessMessage }) {
+  const { t } = useTranslation('common');
   const [staffList, setStaffList] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [assignedChecklists, setAssignedChecklists] = useState([]);
@@ -42,6 +44,8 @@ export default function StaffChecklistManager() {
 
   const handleAssignChecklist = async () => {
     if (!selectedStaffId || !selectedTemplateId) {
+      // This alert is for immediate user feedback on a form error.
+      // In a more advanced version, this could be a themed error pop-up.
       alert("Please select a staff member and a template.");
       return;
     }
@@ -57,7 +61,9 @@ export default function StaffChecklistManager() {
       items: template.items.map(itemText => ({ text: itemText, completed: false })),
       assignedAt: new Date(),
     });
-    alert(`Assigned "${template.name}" to ${staff.name}.`);
+    
+    // FIX: Use the themed success modal
+    setSuccessMessage({ key: 'ChecklistAssigned', options: { templateName: template.name, staffName: staff.name } });
   };
 
   const handleToggleItem = async (checklistId, itemIndex) => {
@@ -72,30 +78,30 @@ export default function StaffChecklistManager() {
   };
 
   return (
-    <Card title="Assign & Track Checklists">
+    <Card title={t('AssignAndTrackChecklists')}>
       <div className="p-4 border border-neo-dark/20 rounded-lg mb-6 flex items-end space-x-4">
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Select Staff</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('SelectStaff')}</label>
           <NeumorphismSelect value={selectedStaffId} onChange={(e) => setSelectedStaffId(e.target.value)}>
-            <option value="">-- Select Staff --</option>
+            <option value="">-- {t('SelectStaff')} --</option>
             {staffList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </NeumorphismSelect>
         </div>
         <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Select Template</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('SelectTemplate')}</label>
           <NeumorphismSelect value={selectedTemplateId} onChange={(e) => setSelectedTemplateId(e.target.value)}>
-            <option value="">-- Select Template --</option>
+            <option value="">-- {t('SelectTemplate')} --</option>
             {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </NeumorphismSelect>
         </div>
         <NeumorphismButton onClick={handleAssignChecklist} className="!w-auto !px-4 !py-2.5">
-            <PlusCircle className="w-5 h-5 mr-2"/>Assign
+            <PlusCircle className="w-5 h-5 mr-2"/>{t('Assign')}
         </NeumorphismButton>
       </div>
 
       <div>
         <h3 className="font-semibold text-gray-700 mb-2">
-          {selectedStaffId ? `Checklists for ${staffList.find(s=>s.id === selectedStaffId)?.name}` : 'Select a staff member to view their checklists'}
+          {selectedStaffId ? `${t('ChecklistsFor')} ${staffList.find(s=>s.id === selectedStaffId)?.name}` : t('SelectStaffToViewChecklists')}
         </h3>
         <div className="space-y-4">
           {assignedChecklists.map(checklist => (

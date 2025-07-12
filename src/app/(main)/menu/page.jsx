@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { db } from '@/lib/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import MenuList from '@/components/menu/MenuList';
 import RecipeEditor from '@/components/menu/RecipeEditor';
 import EditMenuModal from '@/components/menu/EditMenuModal';
@@ -12,6 +13,7 @@ import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import SuccessModal from '@/components/ui/SuccessModal';
 
 export default function MenuPage() {
+  const { t } = useTranslation('common');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
   
@@ -44,14 +46,16 @@ export default function MenuPage() {
   };
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-700 mb-6" style={{textShadow: '1px 1px 1px #ffffff'}}>Menu Management</h1>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <MenuList onEdit={handleEditClick} onDelete={handleDeleteClick} />
-        </div>
-        <div className="lg:col-span-1">
-          <RecipeEditor setSuccessMessage={setSuccessMessage} />
+    <>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-700 mb-6" style={{textShadow: '1px 1px 1px #ffffff'}}>{t('MenuManagement')}</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <MenuList onEdit={handleEditClick} onDelete={handleDeleteClick} />
+          </div>
+          <div className="lg:col-span-1">
+            <RecipeEditor setSuccessMessage={setSuccessMessage} />
+          </div>
         </div>
       </div>
 
@@ -59,15 +63,16 @@ export default function MenuPage() {
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
         menuItem={selectedMenuItem}
+        onSuccess={setSuccessMessage}
       />
 
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Menu Item"
+        title={t('DeleteMenuItem')}
       >
-        Are you sure you want to delete the item "{menuItemToDelete?.name}"? This action cannot be undone.
+        {t('DeleteConfirm', { name: menuItemToDelete?.name })}
       </ConfirmationModal>
       
       <SuccessModal
@@ -77,6 +82,6 @@ export default function MenuPage() {
       >
         {successMessage}
       </SuccessModal>
-    </div>
+    </>
   );
 }

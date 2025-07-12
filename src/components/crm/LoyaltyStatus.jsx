@@ -3,6 +3,7 @@
 'use client';
 
 import { Star, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import Card from '@/components/ui/Card';
 
 const TIERS = {
@@ -18,6 +19,7 @@ const getNextTier = (currentSpend) => {
 };
 
 export default function LoyaltyStatus({ customerName, currentSpend, currentTier }) {
+  const { t } = useTranslation('common');
   const nextTier = getNextTier(currentSpend);
   
   let progress = 0;
@@ -32,35 +34,34 @@ export default function LoyaltyStatus({ customerName, currentSpend, currentTier 
   }
 
   return (
-    <Card title="Loyalty Status">
+    <Card title={t('LoyaltyStatus')}>
       <h2 className="text-xl font-semibold text-gray-800 mb-1">{customerName}</h2>
-      <p className="text-sm text-gray-500 mb-4">Current Status</p>
+      <p className="text-sm text-gray-500 mb-4">{t('Status')}</p>
 
       <div className="flex items-center mb-4">
         <Star className={`w-10 h-10 mr-4 ${TIERS[currentTier.toUpperCase()]?.color || 'text-gray-400'}`} />
         <div>
           <p className="text-2xl font-bold text-gray-900">{currentTier}</p>
-          <p className="text-sm text-gray-600">Current Spend: {currentSpend.toLocaleString()}</p>
+          <p className="text-sm text-gray-600">{t('CurrentSpend')}: {currentSpend.toLocaleString()}</p>
         </div>
       </div>
 
       {nextTier ? (
         <div>
           <div className="flex justify-between items-center text-sm text-gray-600 mb-1">
-            <span>Progress to {nextTier.name}</span>
+            <span>{t('Progress to')} {t(nextTier.name)}</span>
             <span>{Math.round(progress)}%</span>
           </div>
-          {/* Themed progress bar */}
           <div className="w-full bg-neo-bg rounded-full h-2.5 shadow-neo-inset">
             <div className="bg-primary h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
           </div>
           <p className="text-xs text-gray-500 mt-2 text-center">
-            Spend {spendToNext.toLocaleString()} more to reach {nextTier.name} tier!
+            {t('Spend')} {spendToNext.toLocaleString()} {t('more to reach')} {t(nextTier.name)} {t('tier')}!
           </p>
         </div>
       ) : (
         <div className="text-center text-sm text-green-600 font-semibold flex items-center justify-center">
-          <TrendingUp className="w-4 h-4 mr-2"/> You are at the highest tier!
+          <TrendingUp className="w-4 h-4 mr-2"/> {t('You are at the highest tier!')}
         </div>
       )}
     </Card>

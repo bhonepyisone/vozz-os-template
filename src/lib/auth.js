@@ -1,49 +1,44 @@
 // FILE: src/lib/auth.js
-
 import { create } from 'zustand';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
-
-// Helper function to get user from localStorage safely
-const getInitialUser = () => {
-  if (typeof window !== 'undefined') {
-    const user = localStorage.getItem('vozz-os-user');
-    return user ? JSON.parse(user) : null;
-  }
-  return null;
-};
+import {
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+  setPersistence,
+  browserLocalPersistence
+} from 'firebase/auth';
 
 const useAuthStore = create((set) => ({
-  user: getInitialUser(),
+  user: null,
   loading: true,
 
   fetchUser: () => {
-    // This function now simply verifies the initial state from localStorage
-    // In a real app, you might re-validate the session token here
-    set({ loading: false });
+    onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const userData = { uid: userDoc.id, ...userDoc.data() };
+          set({ user: userData, loading: false });
+        } else {
+          signOut(auth);
+          set({ user: null, loading: false });
+        }
+      } else {
+        set({ user: null, loading: false });
+      }
+    });
   },
 
-  login: async (staffId) => {
+  login: async (email, password) => {
     set({ loading: true });
     try {
-      const userDocRef = doc(db, 'users', staffId);
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.exists()) {
-        const userData = {
-          uid: userDoc.id,
-          ...userDoc.data()
-        };
-        // Save user to localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('vozz-os-user', JSON.stringify(userData));
-        }
-        set({ user: userData, loading: false });
-      } else {
-        throw new Error("User not found.");
-      }
-
+      await setPersistence(auth, browserLocalPersistence);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
+      console.error("Login failed:", error);
       set({ user: null, loading: false });
       throw error;
     }
@@ -51,11 +46,7 @@ const useAuthStore = create((set) => ({
 
   logout: async () => {
     set({ loading: true });
-    // Remove user from localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('vozz-os-user');
-    }
-    set({ user: null, loading: false });
+    await signOut(auth);
   },
 }));
 
