@@ -7,8 +7,9 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { Bell, UserCircle, Shield } from 'lucide-react';
+import { Bell, UserCircle, Shield, Languages } from 'lucide-react';
 import NotificationPanel from './NotificationPanel';
+import { useTranslation } from 'react-i18next'; // Import the translation hook
 
 const NeumorphismIconButton = ({ children, className = '', ...props }) => (
     <button {...props} className={`w-12 h-12 flex items-center justify-center bg-neo-bg rounded-full shadow-neo-md text-gray-600 hover:text-primary active:shadow-neo-inset transition-all ${className}`}>
@@ -20,8 +21,8 @@ export default function Navbar() {
   const { user } = useAuthStore();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const { i18n } = useTranslation(); // Get the i18n instance
 
-  // Listen to the notifications collection to get a live count
   useEffect(() => {
     const notifsRef = collection(db, 'notifications');
     const unsubscribe = onSnapshot(notifsRef, (snapshot) => {
@@ -30,9 +31,19 @@ export default function Navbar() {
     return () => unsubscribe();
   }, []);
 
+  const changeLanguage = () => {
+    const newLang = i18n.language === 'en' ? 'th' : 'en';
+    i18n.changeLanguage(newLang);
+  };
+
   return (
     <header className="h-20 bg-neo-bg flex items-center justify-end px-8">
       <div className="flex items-center space-x-6">
+        {/* Language Switcher Button */}
+        <NeumorphismIconButton onClick={changeLanguage} title="Change Language">
+            <Languages className="w-6 h-6" />
+        </NeumorphismIconButton>
+
         {user?.role === 'Admin' && (
           <Link href="/admin">
             <button className="flex items-center space-x-2 px-4 py-2 bg-neo-bg rounded-lg shadow-neo-md text-gray-700 font-semibold hover:text-primary active:shadow-neo-inset transition-colors">
@@ -46,7 +57,6 @@ export default function Navbar() {
             <NeumorphismIconButton onClick={() => setIsNotifOpen(prev => !prev)}>
                 <Bell className="w-6 h-6" />
             </NeumorphismIconButton>
-            {/* The notification count is now dynamic */}
             {notificationCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-neo-bg">
                 {notificationCount}

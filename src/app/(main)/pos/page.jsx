@@ -13,6 +13,10 @@ import PosMenuGrid from '@/components/pos/PosMenuGrid';
 import CustomerSelectModal from '@/components/pos/CustomerSelectModal';
 import SalesRecord from '@/components/pos/SalesRecord';
 import SuccessModal from '@/components/ui/SuccessModal';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import ReceiptModal from '@/components/pos/ReceiptModal'; // Import the new component
+import NeumorphismButton from '@/components/ui/NeumorphismButton';
+import { Printer } from 'lucide-react';
 
 export default function PosPage() {
   const { user } = useAuthStore();
@@ -24,9 +28,14 @@ export default function PosPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [taxPercent, setTaxPercent] = useState(7);
   const [successMessage, setSuccessMessage] = useState('');
+  const [confirmState, setConfirmState] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+  
+  // New state for printing
+  const [lastCompletedOrder, setLastCompletedOrder] = useState(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
   const { subtotal, taxAmount, total } = useMemo(() => {
-    const sub = currentOrder.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const sub = currentOrder.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
     const numericTax = Number(taxPercent);
     const currentTaxPercent = isNaN(numericTax) ? 0 : numericTax;
     const tax = sub * (currentTaxPercent / 100);
@@ -37,11 +46,16 @@ export default function PosPage() {
   const handleTaxChange = (e) => {
     setTaxPercent(e.target.value);
   };
+  
+  const handleSelectCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    setIsCustomerModalOpen(false);
+  };
 
   const updateActiveOrder = useCallback(async (newOrder, table, customer) => {
     if (!table) return;
     
-    const sub = newOrder.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const sub = newOrder.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
     const numericTax = Number(taxPercent);
     const currentTaxPercent = isNaN(numericTax) ? 0 : numericTax;
     const tax = sub * (currentTaxPercent / 100);
@@ -147,6 +161,21 @@ export default function PosPage() {
     if (currentOrder.length === 0 || !user || !selectedTable) return;
     setIsLoading(true);
 
+    const orderToProcess = {
+        items: currentOrder,
+        totalAmount: total,
+        subtotal: subtotal,
+        taxAmount: taxAmount,
+        taxPercent: Number(taxPercent) || 0,
+        paymentMethod,
+        shopId: user.shopId,
+        createdBy: user.uid,
+        createdAt: Timestamp.now(),
+        customerId: selectedCustomer?.id || null,
+        customerName: selectedCustomer?.name || 'Walk-in',
+        tableId: selectedTable.id,
+    };
+
     try {
       const updatedInventoryItemsInfo = [];
 
@@ -168,12 +197,7 @@ export default function PosPage() {
           }
         }
 
-        transaction.set(doc(collection(db, 'sales')), {
-          items: currentOrder, totalAmount: total, paymentMethod, shopId: user.shopId,
-          createdBy: user.uid, createdAt: Timestamp.now(), customerId: selectedCustomer?.id || null,
-          customerName: selectedCustomer?.name || 'Walk-in', tableId: selectedTable.id,
-          taxPercent: Number(taxPercent) || 0, taxAmount: taxAmount
-        });
+        transaction.set(doc(collection(db, 'sales')), orderToProcess);
 
         if (selectedTable.activeOrderId) {
           transaction.delete(doc(db, 'activeOrders', selectedTable.activeOrderId));
@@ -198,6 +222,7 @@ export default function PosPage() {
         }
       }
 
+      setLastCompletedOrder(orderToProcess);
       setSuccessMessage("Sale recorded and inventory updated!");
       setCurrentOrder([]);
       setSelectedCustomer(null);
@@ -248,15 +273,35 @@ export default function PosPage() {
       <CustomerSelectModal
         isOpen={isCustomerModalOpen}
         onClose={() => setIsCustomerModalOpen(false)}
-        onSelectCustomer={setSelectedCustomer}
+        onSelectCustomer={handleSelectCustomer}
       />
       <SuccessModal
         isOpen={!!successMessage}
         onClose={() => setSuccessMessage('')}
         title="Success!"
+        actions={
+            <NeumorphismButton onClick={() => setIsReceiptModalOpen(true)} className="!text-blue-600">
+                <Printer className="w-5 h-5 mr-2"/>
+                Print Receipt
+            </NeumorphismButton>
+        }
       >
         {successMessage}
       </SuccessModal>
+      
+      <ReceiptModal
+        isOpen={isReceiptModalOpen}
+        onClose={() => setIsReceiptModalOpen(false)}
+        order={lastCompletedOrder}
+      />
+      <ConfirmationModal
+        isOpen={confirmState.isOpen}
+        onClose={() => setConfirmState({ isOpen: false })}
+        onConfirm={confirmState.onConfirm}
+        title={confirmState.title}
+      >
+        {confirmState.message}
+      </ConfirmationModal>
     </>
   );
 }

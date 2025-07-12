@@ -11,7 +11,7 @@ import NeumorphismSelect from '@/components/ui/NeumorphismSelect';
 import NeumorphismButton from '@/components/ui/NeumorphismButton';
 import { Save } from 'lucide-react';
 
-export default function EditUserModal({ isOpen, onClose, user }) {
+export default function EditUserModal({ isOpen, onClose, user, setSuccessMessage }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -48,10 +48,11 @@ export default function EditUserModal({ isOpen, onClose, user }) {
         role: formData.role,
         shopId: formData.shopId,
       });
-      alert("User details updated successfully!");
+      setSuccessMessage(`Details for ${formData.name} updated successfully!`);
       onClose();
     } catch (error) {
-      console.error("Error updating user details:", error);
+      console.error("Error updating user:", error);
+      // In a real app, you'd have a themed error modal here too
       alert("Failed to update details.");
     } finally {
       setIsLoading(false);

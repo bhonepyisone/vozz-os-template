@@ -3,6 +3,7 @@
 'use client';
 
 import { X, User, MinusCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import NeumorphismButton from '@/components/ui/NeumorphismButton';
 import NeumorphismInput from '@/components/ui/NeumorphismInput';
 
@@ -20,13 +21,15 @@ export default function OrderPanel({
   taxAmount,
   total,
 }) {
+  const { t } = useTranslation('common');
+
   return (
     <div className="bg-neo-bg p-6 rounded-2xl shadow-neo-lg flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">Current Order</h2>
+        <h2 className="text-xl font-semibold text-gray-700">{t('CurrentOrder')}</h2>
         {selectedTable && (
           <span className="px-3 py-1 text-sm font-bold bg-neo-bg text-primary rounded-full shadow-neo-md">
-            Table: {selectedTable.name}
+            {t('Table')}: {selectedTable.name}
           </span>
         )}
       </div>
@@ -35,11 +38,11 @@ export default function OrderPanel({
         <div className="flex items-center">
           <User className="w-5 h-5 mr-3 text-gray-400" />
           <span className="text-sm font-medium text-gray-700">
-            {selectedCustomer ? selectedCustomer.name : 'Walk-in Customer'}
+            {selectedCustomer ? selectedCustomer.name : t('WalkInCustomer')}
           </span>
         </div>
         <button onClick={onSelectCustomerClick} className="text-sm text-primary hover:underline">
-          {selectedCustomer ? 'Change' : 'Select'}
+          {selectedCustomer ? t('Change') : t('Select')}
         </button>
       </div>
 
@@ -61,18 +64,18 @@ export default function OrderPanel({
           ))
         ) : (
           <div className="text-center text-gray-500 py-10">
-            <p>Select a table to start or view an order.</p>
+            <p>{t('SelectItemsPrompt')}</p>
           </div>
         )}
       </div>
       <div className="mt-4 border-t border-neo-dark/20 pt-4 space-y-2">
         <div className="flex justify-between text-sm text-gray-600">
-          <span>Subtotal</span>
+          <span>{t('Subtotal')}</span>
           <span>{subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
         </div>
         <div className="flex justify-between items-center text-sm text-gray-600">
           <div className="flex items-center">
-            <span className="mr-1">Tax</span>
+            <span className="mr-1">{t('Tax')}</span>
             <NeumorphismInput 
               type="number"
               value={taxPercent}
@@ -85,7 +88,7 @@ export default function OrderPanel({
           <span>{taxAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
         </div>
         <div className="flex justify-between text-xl font-bold text-gray-900">
-          <span>Total</span>
+          <span>{t('Total')}</span>
           <span>{total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
         </div>
         <div className="flex space-x-2 mt-4">
@@ -101,7 +104,7 @@ export default function OrderPanel({
             disabled={orderItems.length === 0}
             className="!w-3/4"
           >
-            Process Payment
+            {t('ProcessPayment')}
           </NeumorphismButton>
         </div>
       </div>

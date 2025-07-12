@@ -106,7 +106,7 @@ export default function ChecklistTemplateManager() {
         onConfirm={handleConfirmDelete}
         title="Delete Checklist Item"
       >
-        Are you sure you want to remove this item: "{itemToDelete?.itemText}"?
+        Are you sure you want to remove this item: &quot;{itemToDelete?.itemText}&quot;?
       </ConfirmationModal>
     </>
   );

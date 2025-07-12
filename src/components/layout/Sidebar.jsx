@@ -6,18 +6,35 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard, ShoppingCart, BookOpen, Boxes, CalendarCheck,
   Heart, Users, Banknote, BarChart2, Settings, Shield, LogOut, 
   CalendarClock, ClipboardList, ArrowLeftToLine, ReceiptText
 } from 'lucide-react';
 
-const navLinks = [
+// Define links for each role
+const staffLinks = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/attendance', label: 'Attendance', icon: CalendarCheck },
+  { href: '/reimbursements', label: 'Reimbursements', icon: ReceiptText },
+];
+
+const frontDeskLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/pos', label: 'POS', icon: ShoppingCart },
   { href: '/menu', label: 'Menu', icon: BookOpen },
   { href: '/inventory', label: 'Inventory', icon: Boxes },
-  { href: '/schedule', label: 'Schedule', icon: CalendarClock },
+  { href: '/attendance', label: 'Attendance', icon: CalendarCheck },
+  { href: '/crm', label: 'CRM', icon: Heart },
+  { href: '/reimbursements', label: 'Reimbursements', icon: ReceiptText },
+];
+
+const managementLinks = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/pos', label: 'POS', icon: ShoppingCart },
+  { href: '/menu', label: 'Menu', icon: BookOpen },
+  { href: '/inventory', label: 'Inventory', icon: Boxes },
   { href: '/attendance', label: 'Attendance', icon: CalendarCheck },
   { href: '/crm', label: 'CRM', icon: Heart },
   { href: '/hrm', label: 'HRM', icon: Users },
@@ -38,8 +55,32 @@ const adminLinks = [
 export default function Sidebar({ isAdmin = false }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuthStore();
-  const links = isAdmin ? adminLinks : navLinks;
+  const { user, logout } = useAuthStore();
+  const { t } = useTranslation('common');
+  
+  let links = [];
+  // Determine which set of links to show based on the user's role
+  if (isAdmin) {
+      links = adminLinks;
+  } else {
+      switch (user?.role) {
+          case 'Admin':
+              links = managementLinks; // Admins see all management links in the main app
+              break;
+          case 'Management':
+              links = managementLinks;
+              break;
+          case 'Front Desk':
+              links = frontDeskLinks;
+              break;
+          case 'Staff':
+              links = staffLinks;
+              break;
+          default:
+              links = []; // No links if role is not defined
+              break;
+      }
+  }
 
   const handleLogout = async () => {
     await logout();
@@ -47,7 +88,6 @@ export default function Sidebar({ isAdmin = false }) {
   };
 
   return (
-    // FIX: Replaced the simple border with a more prominent shadow to make the sidebar stand out with a 3D effect.
     <aside className="w-64 bg-neo-bg flex flex-col shadow-neo-lg z-10">
       <div className="flex items-center justify-center h-20">
          <Image 
@@ -74,12 +114,11 @@ export default function Sidebar({ isAdmin = false }) {
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="ml-4 text-sm font-medium">{link.label}</span>
+              <span className="ml-4 text-sm font-medium">{t(link.label)}</span>
             </Link>
           );
         })}
       </nav>
-      {/* FIX: Updated the bottom buttons to match the Neumorphism theme */}
       <div className="px-4 py-4 border-t border-neo-dark/30 space-y-2">
         {isAdmin && (
           <Link href="/dashboard">

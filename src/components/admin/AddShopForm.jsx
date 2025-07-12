@@ -26,6 +26,7 @@ export default function AddShopForm({ setSuccessMessage }) {
       setShopName('');
     } catch (error) {
       console.error("Error creating shop:", error);
+      // In a real app, you'd have a themed error modal here too
       alert("Failed to create shop.");
     } finally {
       setIsLoading(false);

@@ -1,5 +1,4 @@
 // FILE: src/app/(auth)/login/page.jsx
-
 'use client';
 
 import { useState } from 'react';
@@ -7,10 +6,8 @@ import { useAuthStore } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { LogIn } from 'lucide-react';
 
-// FIX: Define helper components outside the main component function.
-// This prevents them from being re-created on every render, which solves the focus issue.
 const NeumorphismInput = (props) => (
-  <input {...props} className="w-full my-2.5 p-3 bg-neo-bg rounded-lg shadow-neo-inset focus:outline-none" />
+  <input {...props} className="w-full my-1 p-3 bg-neo-bg rounded-lg shadow-neo-inset focus:outline-none" />
 );
 
 const NeumorphismButton = ({ children, ...props }) => (
@@ -20,24 +17,24 @@ const NeumorphismButton = ({ children, ...props }) => (
 );
 
 export default function LoginPage() {
-  // Login State
-  const [staffId, setStaffId] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuthStore();
   const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setIsLoginLoading(true);
-    setLoginError('');
+    setIsLoading(true);
+    setError('');
     try {
-      await login(staffId);
+      await login(email, password);
       router.push('/dashboard');
     } catch (err) {
-      setLoginError(err.message || 'Login failed.');
+      setError("Login failed. Please check your credentials.");
     } finally {
-      setIsLoginLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -45,22 +42,26 @@ export default function LoginPage() {
     <>
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Vozz OS Login</h1>
-        <p className="text-sm text-gray-500 mt-1">Enter your Staff ID to continue</p>
       </div>
-
-      {/* Simplified Login Form */}
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleLogin} className="space-y-4">
         <NeumorphismInput
-          type="text"
-          placeholder="Staff ID"
-          value={staffId}
-          onChange={(e) => setStaffId(e.target.value)}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
-        {loginError && <p className="mt-2 text-xs text-red-500">{loginError}</p>}
-        <NeumorphismButton type="submit" disabled={isLoginLoading}>
+        <NeumorphismInput
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {error && <p className="text-xs text-red-500 pt-2">{error}</p>}
+        <NeumorphismButton type="submit" disabled={isLoading}>
           <LogIn className="w-4 h-4"/>
-          <span>{isLoginLoading ? 'Signing In...' : 'Login'}</span>
+          <span>{isLoading ? 'Signing In...' : 'Login'}</span>
         </NeumorphismButton>
       </form>
     </>

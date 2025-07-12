@@ -5,6 +5,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import { Search } from 'lucide-react';
 import NeumorphismInput from '@/components/ui/NeumorphismInput';
 
@@ -20,6 +21,7 @@ const MenuItem = ({ item, onSelect }) => (
 );
 
 export default function PosMenuGrid({ onAddItem }) {
+  const { t } = useTranslation('common');
   const [menuItems, setMenuItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,11 +32,7 @@ export default function PosMenuGrid({ onAddItem }) {
       const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMenuItems(items);
       setIsLoading(false);
-    }, (error) => {
-      console.error("Error fetching menu items:", error);
-      setIsLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -42,7 +40,6 @@ export default function PosMenuGrid({ onAddItem }) {
     const filtered = menuItems.filter(item =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     return filtered.reduce((acc, item) => {
       const category = item.category || 'Uncategorized';
       if (!acc[category]) {
@@ -56,12 +53,12 @@ export default function PosMenuGrid({ onAddItem }) {
   return (
     <div className="bg-neo-bg p-6 rounded-2xl shadow-neo-lg">
        <div className="flex justify-between items-center mb-4">
-         <h2 className="text-xl font-semibold text-gray-700">Menu</h2>
+         <h2 className="text-xl font-semibold text-gray-700">{t('Menu')}</h2>
          <div className="relative">
            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
            <NeumorphismInput
              type="text"
-             placeholder="Search menu..."
+             placeholder={t('SearchMenu')}
              value={searchTerm}
              onChange={(e) => setSearchTerm(e.target.value)}
              className="pl-10 !w-64"
@@ -69,7 +66,7 @@ export default function PosMenuGrid({ onAddItem }) {
          </div>
        </div>
        {isLoading ? (
-         <div className="text-center text-gray-500">Loading menu...</div>
+         <div className="text-center text-gray-500">{t('LoadingMenu')}</div>
        ) : (
          <div className="space-y-6">
           {Object.entries(categorizedMenuItems).map(([category, items]) => (

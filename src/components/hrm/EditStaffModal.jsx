@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import Modal from '@/components/ui/Modal';
 import NeumorphismInput from '@/components/ui/NeumorphismInput';
@@ -12,7 +13,8 @@ import NeumorphismSelect from '@/components/ui/NeumorphismSelect';
 import NeumorphismButton from '@/components/ui/NeumorphismButton';
 import { Save } from 'lucide-react';
 
-export default function EditStaffModal({ isOpen, onClose, staffMember }) {
+export default function EditStaffModal({ isOpen, onClose, staffMember, onSuccess }) {
+  const { t } = useTranslation('common');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,7 +29,6 @@ export default function EditStaffModal({ isOpen, onClose, staffMember }) {
         name: staffMember.name || '',
         email: staffMember.email || '',
         role: staffMember.role || 'Staff',
-        // Format the Firestore Timestamp to a yyyy-MM-dd string for the input
         joinDate: staffMember.joinDate ? format(staffMember.joinDate.toDate(), 'yyyy-MM-dd') : '',
       });
     }
@@ -50,10 +51,12 @@ export default function EditStaffModal({ isOpen, onClose, staffMember }) {
         role: formData.role,
         joinDate: Timestamp.fromDate(new Date(formData.joinDate)),
       });
-      alert("Staff details updated successfully!");
+      // FIX: Call the onSuccess function passed from the parent page
+      onSuccess({ key: 'StaffDetailsUpdated' });
       onClose();
     } catch (error) {
       console.error("Error updating staff details:", error);
+      // In a real app, you'd have a themed error modal here too
       alert("Failed to update details.");
     } finally {
       setIsLoading(false);
@@ -61,18 +64,18 @@ export default function EditStaffModal({ isOpen, onClose, staffMember }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Edit ${formData.name}`}>
+    <Modal isOpen={isOpen} onClose={onClose} title={`${t('Edit')} ${staffMember?.name}`}>
       <form onSubmit={handleSaveChanges} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('FullName')}</label>
           <NeumorphismInput type="text" name="name" value={formData.name} onChange={handleInputChange} required />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('Email')}</label>
           <NeumorphismInput type="email" name="email" value={formData.email} onChange={handleInputChange} />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('Role')}</label>
           <NeumorphismSelect name="role" value={formData.role} onChange={handleInputChange}>
             <option>Staff</option>
             <option>Front Desk</option>
@@ -81,12 +84,12 @@ export default function EditStaffModal({ isOpen, onClose, staffMember }) {
           </NeumorphismSelect>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Join Date</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('JoinDate')}</label>
           <NeumorphismInput type="date" name="joinDate" value={formData.joinDate} onChange={handleInputChange} required />
         </div>
         <NeumorphismButton type="submit" disabled={isLoading}>
           <Save className="w-5 h-5"/>
-          <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
+          <span>{isLoading ? t('Saving') : t('SaveChanges')}</span>
         </NeumorphismButton>
       </form>
     </Modal>

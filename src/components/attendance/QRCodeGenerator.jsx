@@ -4,10 +4,12 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/auth';
+import { useTranslation } from 'react-i18next';
 import QRCode from 'qrcode.react';
 import Card from '@/components/ui/Card';
 
 export default function QRCodeGenerator() {
+  const { t } = useTranslation('common');
   const { user } = useAuthStore();
   const [qrValue, setQrValue] = useState('');
 
@@ -16,7 +18,13 @@ export default function QRCodeGenerator() {
 
     const generateValue = () => {
       const timestamp = Date.now();
-      const value = JSON.stringify({ staffId: user.uid, shopId: user.shopId, timestamp });
+      // FIX: Update the QR code payload to include Name and Position (Role)
+      const value = JSON.stringify({ 
+        staffId: user.uid, 
+        name: user.name,
+        position: user.role,
+        timestamp 
+      });
       setQrValue(value);
     };
 
@@ -30,7 +38,7 @@ export default function QRCodeGenerator() {
   }
 
   return (
-    <Card title="Your Attendance QR Code">
+    <Card title={t('YourAttendanceQRCode')}>
       <div className="flex flex-col items-center justify-center text-center">
         {qrValue ? (
           <div className="p-4 bg-neo-bg rounded-lg shadow-neo-inset">
@@ -47,10 +55,10 @@ export default function QRCodeGenerator() {
           <div className="w-64 h-64 bg-neo-bg shadow-neo-inset rounded-lg animate-pulse"></div>
         )}
         <p className="mt-4 text-sm text-gray-600">
-          Show this to the Front Desk to clock in/out.
+          {t('ShowThisToFrontDesk')}
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          (This code refreshes every 60 seconds)
+          {t('CodeRefreshesEvery60Seconds')}
         </p>
       </div>
     </Card>

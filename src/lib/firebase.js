@@ -3,9 +3,8 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions'; // Import functions modules
 
-// IMPORTANT: Create a .env.local file in the root of your project
-// and add your Firebase configuration there.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -25,5 +24,6 @@ if (!getApps().length) {
 
 const auth = getAuth(app);
 const db = getFirestore(app);
+const functions = getFunctions(app); // Initialize Functions
 
-export { app, auth, db };
+export { app, auth, db, functions, httpsCallable }; // Export functions and httpsCallable

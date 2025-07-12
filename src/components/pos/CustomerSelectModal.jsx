@@ -7,6 +7,8 @@ import { db } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc } from 'firebase/firestore';
 import Modal from '@/components/ui/Modal';
 import { UserPlus } from 'lucide-react';
+import NeumorphismInput from '@/components/ui/NeumorphismInput';
+import NeumorphismButton from '@/components/ui/NeumorphismButton';
 
 export default function CustomerSelectModal({ isOpen, onClose, onSelectCustomer }) {
   const [customers, setCustomers] = useState([]);
@@ -48,40 +50,39 @@ export default function CustomerSelectModal({ isOpen, onClose, onSelectCustomer 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Select or Add Customer">
       <div className="space-y-4">
-        <input
+        <NeumorphismInput
           type="text"
           placeholder="Search for a customer..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md"
         />
-        <div className="max-h-48 overflow-y-auto space-y-2">
+        <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-neo-bg shadow-neo-inset rounded-lg">
           {filteredCustomers.map(customer => (
             <button
               key={customer.id}
               onClick={() => onSelectCustomer(customer)}
-              className="w-full text-left p-2 rounded-md hover:bg-gray-100"
+              className="w-full text-left p-2 rounded-md hover:bg-gray-300/50"
             >
               {customer.name}
             </button>
           ))}
         </div>
-        <div className="border-t pt-4 space-y-2">
+        <div className="border-t border-neo-dark/20 pt-4 space-y-2">
           <label className="text-sm font-medium">Add New Customer</label>
           <div className="flex space-x-2">
-            <input
+            <NeumorphismInput
               type="text"
               placeholder="New customer name..."
               value={newCustomerName}
               onChange={(e) => setNewCustomerName(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+              className="flex-1"
             />
-            <button
+            <NeumorphismButton
               onClick={handleAddNewCustomer}
-              className="p-2 bg-primary text-white rounded-md hover:bg-primary/90"
+              className="!w-auto !p-3 !text-green-600"
             >
               <UserPlus className="w-5 h-5" />
-            </button>
+            </NeumorphismButton>
           </div>
         </div>
       </div>

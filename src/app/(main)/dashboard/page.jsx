@@ -7,18 +7,20 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, Timestamp, doc, getDoc } from 'firebase/firestore';
 import { useAuthStore } from '@/lib/auth';
 import { format, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek } from 'date-fns';
+import { useTranslation } from 'react-i18next'; // Import the translation hook
 
 import KPI_Card from '@/components/dashboard/KPI_Card';
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
 import AnnouncementFeed from '@/components/dashboard/AnnouncementFeed';
 import KudosFeed from '@/components/dashboard/KudosFeed';
-import Card from '@/components/ui/Card'; // Import the themed Card
+import Card from '@/components/ui/Card';
 import { Loader2, DollarSign, ShoppingCart, Users, TrendingUp } from 'lucide-react';
 
 const timeframes = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+  const { t } = useTranslation('common'); // Initialize translation
   const [activeTimeframe, setActiveTimeframe] = useState('Daily');
   const [dashboardData, setDashboardData] = useState({
     income: 0,
@@ -182,16 +184,16 @@ export default function DashboardPage() {
   }, [user, activeTimeframe]);
 
   const kpiData = [
-    { title: `${activeTimeframe} Income`, value: dashboardData.income.toLocaleString(), icon: <DollarSign className="w-6 h-6 text-green-500" /> },
-    { title: `${activeTimeframe} Orders`, value: dashboardData.orders.toLocaleString(), icon: <ShoppingCart className="w-6 h-6 text-blue-500" /> },
-    { title: "Active Staff", value: dashboardData.activeStaff.toLocaleString(), icon: <Users className="w-6 h-6 text-yellow-500" /> },
-    { title: "Profit Margin", value: `${dashboardData.profitMargin}%`, icon: <TrendingUp className="w-6 h-6 text-purple-500" /> },
+    { title: t(`${activeTimeframe}Income`), value: dashboardData.income.toLocaleString(), icon: <DollarSign className="w-6 h-6 text-green-500" /> },
+    { title: t(`${activeTimeframe}Orders`), value: dashboardData.orders.toLocaleString(), icon: <ShoppingCart className="w-6 h-6 text-blue-500" /> },
+    { title: t('ActiveStaff'), value: dashboardData.activeStaff.toLocaleString(), icon: <Users className="w-6 h-6 text-yellow-500" /> },
+    { title: t('ProfitMargin'), value: `${dashboardData.profitMargin}%`, icon: <TrendingUp className="w-6 h-6 text-purple-500" /> },
   ];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-700" style={{textShadow: '1px 1px 1px #ffffff'}}>Shop Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-700" style={{textShadow: '1px 1px 1px #ffffff'}}>{t('ShopDashboard')}</h1>
         <div className="flex items-center bg-neo-bg p-1 rounded-lg shadow-neo-inset-active">
           {timeframes.map(frame => (
             <button 
@@ -201,7 +203,7 @@ export default function DashboardPage() {
                 activeTimeframe === frame ? 'bg-neo-bg shadow-neo-md text-primary' : 'text-gray-600'
               }`}
             >
-              {frame}
+              {t(frame)}
             </button>
           ))}
         </div>
@@ -217,21 +219,21 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card title={`${activeTimeframe} Performance`} className="lg:col-span-2">
+            <Card title={`${t(activeTimeframe)} ${t('Performance')}`} className="lg:col-span-2">
               <div style={{ height: '300px' }}><PerformanceChart data={chartData} /></div>
             </Card>
-            <Card title="Top Performers">
+            <Card title={t('TopPerformers')}>
               <div className="space-y-4">
-                <div><h3 className="text-sm font-medium text-gray-500">Best Staff</h3><p className="text-lg font-bold text-gray-800">{topPerformers.bestStaff}</p></div>
-                <div><h3 className="text-sm font-medium text-gray-500">Best Selling Menu</h3><p className="text-lg font-bold text-gray-800">{topPerformers.bestMenuItem}</p></div>
-                <div><h3 className="text-sm font-medium text-gray-500">Most Active Customer</h3><p className="text-lg font-bold text-gray-800">{topPerformers.mostActiveCustomer}</p></div>
+                <div><h3 className="text-sm font-medium text-gray-500">{t('BestStaff')}</h3><p className="text-lg font-bold text-gray-800">{topPerformers.bestStaff}</p></div>
+                <div><h3 className="text-sm font-medium text-gray-500">{t('BestSellingMenu')}</h3><p className="text-lg font-bold text-gray-800">{topPerformers.bestMenuItem}</p></div>
+                <div><h3 className="text-sm font-medium text-gray-500">{t('MostActiveCustomer')}</h3><p className="text-lg font-bold text-gray-800">{topPerformers.mostActiveCustomer}</p></div>
               </div>
             </Card>
           </div>
-          <Card title="Recent Announcements">
+          <Card title={t('RecentAnnouncements')}>
             <AnnouncementFeed />
           </Card>
-          <Card title="Recent Kudos">
+          <Card title={t('RecentKudos')}>
             <KudosFeed />
           </Card>
         </div>

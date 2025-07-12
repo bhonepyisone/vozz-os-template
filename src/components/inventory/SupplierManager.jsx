@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { useTranslation } from 'react-i18next';
 import { Truck, Phone, PlusCircle, Trash2 } from 'lucide-react';
 import ConfirmationModal from '@/components/ui/ConfirmationModal';
 import NeumorphismInput from '@/components/ui/NeumorphismInput';
@@ -12,6 +13,7 @@ import NeumorphismButton from '@/components/ui/NeumorphismButton';
 import Card from '@/components/ui/Card';
 
 export default function SupplierManager() {
+  const { t } = useTranslation('common');
   const [suppliers, setSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -64,37 +66,35 @@ export default function SupplierManager() {
 
   return (
     <>
-      <Card title="Manage Suppliers">
-        {/* Add Supplier Form */}
+      <Card title={t('ManageSuppliers')}>
         <form onSubmit={handleAddSupplier} className="mb-6 p-4 border border-neo-dark/20 rounded-lg space-y-3">
-          <h3 className="font-medium text-gray-700">Add New Supplier</h3>
+          <h3 className="font-medium text-gray-700">{t('AddSupplier')}</h3>
           <NeumorphismInput 
             type="text" 
             value={newSupplierName} 
             onChange={(e) => setNewSupplierName(e.target.value)} 
-            placeholder="Supplier Name" 
+            placeholder={t('SupplierName')} 
             required 
           />
           <NeumorphismInput 
             type="text" 
             value={newSupplierContact} 
             onChange={(e) => setNewSupplierContact(e.target.value)} 
-            placeholder="Contact Info (Phone/Email)" 
+            placeholder={t('ContactInfo')} 
           />
           <NeumorphismInput 
             type="text" 
             value={newSupplierCategory} 
             onChange={(e) => setNewSupplierCategory(e.target.value)} 
-            placeholder="Category (e.g., Meat, Dairy)" 
+            placeholder={t('Category')} 
             required 
           />
           <NeumorphismButton type="submit">
             <PlusCircle className="w-5 h-5" />
-            <span>Add Supplier</span>
+            <span>{t('AddSupplier')}</span>
           </NeumorphismButton>
         </form>
 
-        {/* Supplier List */}
         <div className="space-y-3">
           {isLoading ? <p>Loading suppliers...</p> : suppliers.map(supplier => (
             <div key={supplier.id} className="p-4 border border-neo-dark/20 rounded-lg flex justify-between items-center">
@@ -119,9 +119,9 @@ export default function SupplierManager() {
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Delete Supplier"
+        title={t('DeleteSupplier')}
       >
-        Are you sure you want to delete the supplier "{supplierToDelete?.name}"? This action cannot be undone.
+        {t('DeleteSupplierConfirm', { name: supplierToDelete?.name })}
       </ConfirmationModal>
     </>
   );
