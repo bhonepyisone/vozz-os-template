@@ -23,6 +23,10 @@ export default function EditStockModal({ isOpen, onClose, item, onSuccess }) {
   const handleSaveChanges = async (e) => {
     e.preventDefault();
     if (!item || newStock === '') return;
+    if (Number(newStock) < 0) {
+      alert("Stock value cannot be negative.");
+      return;
+    }
     setIsLoading(true);
     try {
       const itemRef = doc(db, 'inventory', item.id);
@@ -46,6 +50,7 @@ export default function EditStockModal({ isOpen, onClose, item, onSuccess }) {
           <label className="block text-sm font-medium text-gray-700 mb-1">New Stock Quantity</label>
           <NeumorphismInput 
             type="number" 
+            min="0"
             value={newStock} 
             onChange={(e) => setNewStock(e.target.value)} 
             required 

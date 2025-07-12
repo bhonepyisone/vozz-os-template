@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { db } from '@/lib/firebase';
-import { doc, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { useTranslation } from 'react-i18next';
 import StockList from '@/components/inventory/StockList';
 import PurchaseOrderForm from '@/components/inventory/PurchaseOrderForm';
@@ -18,6 +18,7 @@ export default function InventoryPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -34,9 +35,32 @@ export default function InventoryPage() {
 
   const handleConfirmDelete = async () => {
     if (itemToDelete) {
-      await deleteDoc(doc(db, 'inventory', itemToDelete.id));
-      setItemToDelete(null);
-      setIsConfirmModalOpen(false);
+      try {
+        // Check if the item is used in any menu recipes
+        const menuQuery = query(
+          collection(db, 'menu'),
+          where('recipe', 'array-contains', { inventoryId: itemToDelete.id })
+        );
+        const menuSnapshot = await getDocs(menuQuery);
+
+        if (!menuSnapshot.empty) {
+          const conflictingMenus = menuSnapshot.docs.map(doc => doc.data().name).join(', ');
+          setErrorMessage(`Cannot delete "${itemToDelete.name}" because it is used in the following menu items: ${conflictingMenus}. Please remove it from these recipes first.`);
+          setIsConfirmModalOpen(false);
+          setItemToDelete(null);
+          return;
+        }
+
+        // If not used, proceed with deletion
+        await deleteDoc(doc(db, 'inventory', itemToDelete.id));
+        setSuccessMessage(`"${itemToDelete.name}" has been deleted successfully.`);
+      } catch (error) {
+        console.error("Error deleting item: ", error);
+        setErrorMessage("Failed to delete item. Please try again.");
+      } finally {
+        setItemToDelete(null);
+        setIsConfirmModalOpen(false);
+      }
     }
   };
 
@@ -81,6 +105,14 @@ export default function InventoryPage() {
       >
         {successMessage}
       </SuccessModal>
+
+      {/* Simple alert for error messages for now */}
+      {errorMessage && (
+        <div className="fixed top-5 right-5 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50">
+          <p>{errorMessage}</p>
+          <button onClick={() => setErrorMessage('')} className="absolute top-1 right-2 text-white font-bold">&times;</button>
+        </div>
+      )}
     </>
   );
 }

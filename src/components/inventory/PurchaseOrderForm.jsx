@@ -25,6 +25,10 @@ export default function PurchaseOrderForm({ setSuccessMessage }) {
       alert("Please fill in all fields.");
       return;
     }
+    if (Number(currentStock) < 0 || Number(minStock) < 0) {
+      alert("Stock values cannot be negative.");
+      return;
+    }
     setIsLoading(true);
 
     try {
@@ -58,11 +62,11 @@ export default function PurchaseOrderForm({ setSuccessMessage }) {
         </div>
         <div>
           <label className="text-sm font-medium text-gray-600">{t('CurrentStock')}</label>
-          <NeumorphismInput type="number" value={currentStock} onChange={(e) => setCurrentStock(e.target.value)} required />
+          <NeumorphismInput type="number" min="0" value={currentStock} onChange={(e) => setCurrentStock(e.target.value)} required />
         </div>
         <div>
           <label className="text-sm font-medium text-gray-600">{t('MinimumStock')}</label>
-          <NeumorphismInput type="number" value={minStock} onChange={(e) => setMinStock(e.target.value)} required />
+          <NeumorphismInput type="number" min="0" value={minStock} onChange={(e) => setMinStock(e.target.value)} required />
         </div>
         <div>
           <label className="text-sm font-medium text-gray-600">{t('Unit')}</label>

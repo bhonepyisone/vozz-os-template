@@ -72,6 +72,10 @@ export default function EditMenuModal({ isOpen, onClose, menuItem }) {
   const handleSaveChanges = async (e) => {
     e.preventDefault();
     if (!menuItem) return;
+    if (Number(price) < 0 || recipe.some(ing => Number(ing.quantity) < 0)) {
+      alert("Price and ingredient quantities cannot be negative.");
+      return;
+    }
     setIsLoading(true);
     try {
       const menuDocRef = doc(db, 'menu', menuItem.id);
@@ -103,7 +107,7 @@ export default function EditMenuModal({ isOpen, onClose, menuItem }) {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Price</label>
-          <NeumorphismInput type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
+          <NeumorphismInput type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Category</label>
@@ -126,7 +130,7 @@ export default function EditMenuModal({ isOpen, onClose, menuItem }) {
                   <option value="">Select Ingredient</option>
                   {inventoryItems.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
                 </NeumorphismSelect>
-                <NeumorphismInput type="number" value={ing.quantity} onChange={(e) => handleRecipeChange(index, 'quantity', Number(e.target.value))} className="!w-20 !my-0" placeholder="Qty" />
+                <NeumorphismInput type="number" min="0" value={ing.quantity} onChange={(e) => handleRecipeChange(index, 'quantity', Number(e.target.value))} className="!w-20 !my-0" placeholder="Qty" />
                 <NeumorphismButton type="button" onClick={() => handleRemoveIngredient(index)} className="!w-auto !p-3 !rounded-full !text-red-600"><Trash2 className="w-4 h-4" /></NeumorphismButton>
               </div>
             ))}

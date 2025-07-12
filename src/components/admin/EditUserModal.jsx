@@ -48,7 +48,12 @@ export default function EditUserModal({ isOpen, onClose, user, setSuccessMessage
         role: formData.role,
         shopId: formData.shopId,
       });
-      setSuccessMessage(`Details for ${formData.name} updated successfully!`);
+
+      let successMsg = `Details for ${formData.name} updated successfully!`;
+      if (user.role !== formData.role) {
+        successMsg += " The user will need to log out and log back in for the role change to take effect.";
+      }
+      setSuccessMessage(successMsg);
       onClose();
     } catch (error) {
       console.error("Error updating user:", error);

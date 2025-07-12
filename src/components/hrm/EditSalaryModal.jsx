@@ -36,6 +36,10 @@ export default function EditSalaryModal({ isOpen, onClose, staffMember, onSucces
   const handleSaveChanges = async (e) => {
     e.preventDefault();
     if (!staffMember) return;
+    if (Number(salaryDetails.baseSalary) < 0 || Number(salaryDetails.overtimeRate) < 0 || Number(salaryDetails.kpiBonus) < 0) {
+      alert("Salary values cannot be negative.");
+      return;
+    }
     setIsLoading(true);
     try {
       const userDocRef = doc(db, 'users', staffMember.id);
@@ -59,15 +63,15 @@ export default function EditSalaryModal({ isOpen, onClose, staffMember, onSucces
       <form onSubmit={handleSaveChanges} className="space-y-4">
         <div>
           <label htmlFor="baseSalary" className="block text-sm font-medium text-gray-700 mb-1">Base Salary</label>
-          <NeumorphismInput type="number" id="baseSalary" name="baseSalary" value={salaryDetails.baseSalary} onChange={handleInputChange} />
+          <NeumorphismInput type="number" min="0" id="baseSalary" name="baseSalary" value={salaryDetails.baseSalary} onChange={handleInputChange} />
         </div>
         <div>
           <label htmlFor="overtimeRate" className="block text-sm font-medium text-gray-700 mb-1">Overtime Rate (e.g., 1.5 for 1.5x)</label>
-          <NeumorphismInput type="number" id="overtimeRate" name="overtimeRate" step="0.1" value={salaryDetails.overtimeRate} onChange={handleInputChange} />
+          <NeumorphismInput type="number" min="0" id="overtimeRate" name="overtimeRate" step="0.1" value={salaryDetails.overtimeRate} onChange={handleInputChange} />
         </div>
         <div>
           <label htmlFor="kpiBonus" className="block text-sm font-medium text-gray-700 mb-1">KPI Bonus</label>
-          <NeumorphismInput type="number" id="kpiBonus" name="kpiBonus" value={salaryDetails.kpiBonus} onChange={handleInputChange} />
+          <NeumorphismInput type="number" min="0" id="kpiBonus" name="kpiBonus" value={salaryDetails.kpiBonus} onChange={handleInputChange} />
         </div>
         <NeumorphismButton type="submit" disabled={isLoading}>
           <Save className="w-5 h-5" />
