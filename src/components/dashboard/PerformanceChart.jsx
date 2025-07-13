@@ -2,9 +2,19 @@
 
 'use client';
 
+import dynamic from 'next/dynamic';
+import { Loader2 } from 'lucide-react';
+
+const BarChart = dynamic(
+  () => import('recharts').then(mod => mod.BarChart),
+  { 
+    ssr: false,
+    loading: () => <div className="flex items-center justify-center h-full"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div>
+  }
+);
+
 import {
   ResponsiveContainer,
-  BarChart,
   Bar,
   XAxis,
   YAxis,

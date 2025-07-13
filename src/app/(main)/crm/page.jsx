@@ -1,5 +1,3 @@
-// FILE: src/app/(main)/crm/page.jsx
-
 'use client';
 
 import { useState } from 'react';

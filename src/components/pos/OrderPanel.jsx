@@ -17,7 +17,10 @@ export default function OrderPanel({
   onClearOrder,
   taxPercent,
   onTaxChange,
+  promoPercent,
+  onPromoChange,
   subtotal,
+  promoAmount,
   taxAmount,
   total,
 }) {
@@ -72,6 +75,20 @@ export default function OrderPanel({
         <div className="flex justify-between text-sm text-gray-600">
           <span>{t('Subtotal')}</span>
           <span>{subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+        </div>
+        <div className="flex justify-between items-center text-sm text-gray-600">
+          <div className="flex items-center">
+            <span className="mr-1">{t('Promo')}</span>
+            <NeumorphismInput 
+              type="number"
+              value={promoPercent}
+              onChange={onPromoChange}
+              className="!w-12 !p-1 !my-0 text-center"
+              placeholder="0"
+            />
+            <span className="ml-1">%</span>
+          </div>
+          <span className="text-red-500">-{promoAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
         </div>
         <div className="flex justify-between items-center text-sm text-gray-600">
           <div className="flex items-center">

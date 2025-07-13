@@ -18,6 +18,7 @@ export default function FinancialStatement() {
   // State for date range selection
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [taxPercent, setTaxPercent] = useState(7); // Default tax rate
   
   // State for the calculated P&L data
   const [pnlData, setPnlData] = useState(null);
@@ -67,7 +68,10 @@ export default function FinancialStatement() {
 
       const totalOperatingExpenses = Object.values(operatingExpenses).reduce((a, b) => a + b, 0);
       const grossProfit = totalRevenue - totalCogs;
-      const netProfit = grossProfit - totalOperatingExpenses;
+      const profitBeforeTax = grossProfit - totalOperatingExpenses;
+      
+      const taxAmount = profitBeforeTax > 0 ? profitBeforeTax * (taxPercent / 100) : 0;
+      const netProfit = profitBeforeTax - taxAmount;
 
       setPnlData({
         period: `${format(start, 'PPP')} - ${format(end, 'PPP')}`,
@@ -76,6 +80,9 @@ export default function FinancialStatement() {
         operatingExpenses,
         totalOperatingExpenses,
         grossProfit,
+        profitBeforeTax,
+        taxPercent,
+        taxAmount,
         netProfit,
       });
 
@@ -99,6 +106,8 @@ export default function FinancialStatement() {
           amount: -value
       })),
       { item: "Total Operating Expenses", amount: -pnlData.totalOperatingExpenses },
+      { item: "Profit Before Tax", amount: pnlData.profitBeforeTax },
+      { item: `Tax (${pnlData.taxPercent}%)`, amount: -pnlData.taxAmount },
       { item: "Net Profit", amount: pnlData.netProfit }
   ] : [];
 
@@ -115,7 +124,7 @@ export default function FinancialStatement() {
       </div>
       
       {/* Date Range Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-neo-dark/20 rounded-lg">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border border-neo-dark/20 rounded-lg">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('StartDate')}</label>
           <NeumorphismInput type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -123,6 +132,15 @@ export default function FinancialStatement() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">{t('EndDate')}</label>
           <NeumorphismInput type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('Tax')} (%)</label>
+          <NeumorphismInput 
+            type="number" 
+            value={taxPercent} 
+            onChange={(e) => setTaxPercent(parseFloat(e.target.value) || 0)}
+            placeholder="e.g. 7"
+          />
         </div>
         <div className="self-end">
           <NeumorphismButton onClick={handleGenerateStatement} disabled={isLoading}>
@@ -165,7 +183,15 @@ export default function FinancialStatement() {
               </div>
             </div>
           </div>
-          <div className="flex justify-between items-center py-3 border-t-2 border-b-2 border-gray-900/50 mt-4">
+          <div className="flex justify-between items-center py-2 border-t border-neo-dark/20 mt-4">
+            <span className="font-semibold text-gray-700">{t('ProfitBeforeTax')}</span>
+            <span className="font-semibold text-gray-900">{formatCurrency(pnlData.profitBeforeTax)}</span>
+          </div>
+          <div className="flex justify-between items-center py-2">
+            <span className="text-gray-600">{t('Tax')} ({pnlData.taxPercent}%)</span>
+            <span className="text-gray-600">({formatCurrency(pnlData.taxAmount)})</span>
+          </div>
+          <div className="flex justify-between items-center py-3 border-t-2 border-b-2 border-gray-900/50 mt-2">
             <span className="text-xl font-bold text-gray-900">{t('NetProfit')}</span>
             <span className={`text-xl font-bold ${pnlData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(pnlData.netProfit)}

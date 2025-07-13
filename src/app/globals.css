@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  /* Fluid typography: scales from 14px to 18px between 320px and 1280px viewports */
+  font-size: clamp(0.875rem, 1vw + 0.5rem, 1.125rem);
+}
+
 body {
   /* Use the new neo-bg color and Segoe UI font */
   @apply bg-neo-bg text-gray-700 antialiased;

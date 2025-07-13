@@ -7,9 +7,9 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { Bell, UserCircle, Shield, Languages } from 'lucide-react';
+import { Bell, UserCircle, Shield, Languages, Menu } from 'lucide-react';
 import NotificationPanel from './NotificationPanel';
-import { useTranslation } from 'react-i18next'; // Import the translation hook
+import { useTranslation } from 'react-i18next';
 
 const NeumorphismIconButton = ({ children, className = '', ...props }) => (
     <button {...props} className={`w-12 h-12 flex items-center justify-center bg-neo-bg rounded-full shadow-neo-md text-gray-600 hover:text-primary active:shadow-neo-inset transition-all ${className}`}>
@@ -17,11 +17,11 @@ const NeumorphismIconButton = ({ children, className = '', ...props }) => (
     </button>
 );
 
-export default function Navbar() {
+export default function Navbar({ toggleMobileNav, isMobile }) {
   const { user } = useAuthStore();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
-  const { i18n } = useTranslation(); // Get the i18n instance
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     const notifsRef = collection(db, 'notifications');
@@ -37,16 +37,22 @@ export default function Navbar() {
   };
 
   return (
-    <header className="h-20 bg-neo-bg flex items-center justify-end px-8">
-      <div className="flex items-center space-x-6">
-        {/* Language Switcher Button */}
-        <NeumorphismIconButton onClick={changeLanguage} title="Change Language">
+    <header className="h-20 bg-neo-bg flex items-center justify-between px-4 md:px-8">
+      <div className="flex items-center space-x-4">
+        {isMobile && (
+          <NeumorphismIconButton onClick={toggleMobileNav} className="md:hidden">
+            <Menu className="w-6 h-6" />
+          </NeumorphismIconButton>
+        )}
+      </div>
+      <div className="flex items-center space-x-2 md:space-x-6">
+        <NeumorphismIconButton onClick={changeLanguage} title="Change Language" className="hidden md:flex">
             <Languages className="w-6 h-6" />
         </NeumorphismIconButton>
 
         {user?.role === 'Admin' && (
           <Link href="/admin">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-neo-bg rounded-lg shadow-neo-md text-gray-700 font-semibold hover:text-primary active:shadow-neo-inset transition-colors">
+            <button className="hidden md:flex items-center space-x-2 px-4 py-2 bg-neo-bg rounded-lg shadow-neo-md text-gray-700 font-semibold hover:text-primary active:shadow-neo-inset transition-colors">
               <Shield className="w-5 h-5" />
               <span>Admin Panel</span>
             </button>
@@ -65,7 +71,7 @@ export default function Navbar() {
             <NotificationPanel isOpen={isNotifOpen} />
         </div>
 
-        <div className="flex items-center space-x-3 bg-neo-bg shadow-neo-md p-2 rounded-full">
+        <div className="hidden md:flex items-center space-x-3 bg-neo-bg shadow-neo-md p-2 rounded-full">
            <UserCircle className="w-10 h-10 text-gray-400" />
            <div className="pr-2">
              <p className="text-sm font-semibold text-gray-800">{user?.name || 'Guest'}</p>

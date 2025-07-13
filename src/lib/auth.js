@@ -7,7 +7,8 @@ import {
   onAuthStateChanged,
   signOut,
   setPersistence,
-  browserLocalPersistence
+  browserLocalPersistence,
+  browserSessionPersistence
 } from 'firebase/auth';
 
 const useAuthStore = create((set) => ({
@@ -32,10 +33,11 @@ const useAuthStore = create((set) => ({
     });
   },
 
-  login: async (email, password) => {
+  login: async (email, password, rememberMe) => {
     set({ loading: true });
     try {
-      await setPersistence(auth, browserLocalPersistence);
+      const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+      await setPersistence(auth, persistence);
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Login failed:", error);
@@ -51,3 +53,6 @@ const useAuthStore = create((set) => ({
 }));
 
 export { useAuthStore };
+
+// Initialize auth state
+useAuthStore.getState().fetchUser();

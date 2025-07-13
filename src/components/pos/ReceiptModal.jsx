@@ -38,6 +38,12 @@ export default function ReceiptModal({ isOpen, onClose, order }) {
             <span>Subtotal:</span>
             <span>{order.subtotal.toFixed(2)}</span>
           </div>
+          {order.promoAmount > 0 && (
+            <div className="flex justify-between">
+              <span>Promotion ({order.promoPercent}%):</span>
+              <span>-{(order.promoAmount || 0).toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>Tax ({order.taxPercent}%):</span>
             <span>{order.taxAmount.toFixed(2)}</span>

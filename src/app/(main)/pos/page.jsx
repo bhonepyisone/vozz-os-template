@@ -3,20 +3,22 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { db } from '@/lib/firebase';
 import { collection, doc, runTransaction, Timestamp, onSnapshot, setDoc, getDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
 import { useAuthStore } from '@/lib/auth';
 import FloorPlan from '@/components/pos/FloorPlan';
 import OrderPanel from '@/components/pos/OrderPanel';
-import PaymentModal from '@/components/pos/PaymentModal';
 import PosMenuGrid from '@/components/pos/PosMenuGrid';
-import CustomerSelectModal from '@/components/pos/CustomerSelectModal';
-import SalesRecord from '@/components/pos/SalesRecord';
-import SuccessModal from '@/components/ui/SuccessModal';
-import ConfirmationModal from '@/components/ui/ConfirmationModal';
-import ReceiptModal from '@/components/pos/ReceiptModal'; // Import the new component
 import NeumorphismButton from '@/components/ui/NeumorphismButton';
-import { Printer } from 'lucide-react';
+import { Printer, Loader2 } from 'lucide-react';
+
+const PaymentModal = dynamic(() => import('@/components/pos/PaymentModal'), { ssr: false, loading: () => <div className="flex items-center justify-center h-full"><Loader2 className="w-8 h-8 text-primary animate-spin" /></div> });
+const CustomerSelectModal = dynamic(() => import('@/components/pos/CustomerSelectModal'), { ssr: false });
+const SalesRecord = dynamic(() => import('@/components/pos/SalesRecord'), { ssr: false });
+const SuccessModal = dynamic(() => import('@/components/ui/SuccessModal'), { ssr: false });
+const ConfirmationModal = dynamic(() => import('@/components/ui/ConfirmationModal'), { ssr: false });
+const ReceiptModal = dynamic(() => import('@/components/pos/ReceiptModal'), { ssr: false });
 
 export default function PosPage() {
   const { user } = useAuthStore();
@@ -27,6 +29,7 @@ export default function PosPage() {
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [taxPercent, setTaxPercent] = useState(7);
+  const [promoPercent, setPromoPercent] = useState(0);
   const [successMessage, setSuccessMessage] = useState('');
   const [confirmState, setConfirmState] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {} });
   
@@ -34,17 +37,30 @@ export default function PosPage() {
   const [lastCompletedOrder, setLastCompletedOrder] = useState(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
-  const { subtotal, taxAmount, total } = useMemo(() => {
+  const { subtotal, promoAmount, taxAmount, total } = useMemo(() => {
     const sub = currentOrder.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+    
+    const numericPromo = Number(promoPercent);
+    const currentPromoPercent = isNaN(numericPromo) ? 0 : numericPromo;
+    const promo = sub * (currentPromoPercent / 100);
+    
+    const subtotalAfterPromo = sub - promo;
+
     const numericTax = Number(taxPercent);
     const currentTaxPercent = isNaN(numericTax) ? 0 : numericTax;
-    const tax = sub * (currentTaxPercent / 100);
-    const tot = sub + tax;
-    return { subtotal: sub, taxAmount: tax, total: tot };
-  }, [currentOrder, taxPercent]);
+    const tax = subtotalAfterPromo * (currentTaxPercent / 100);
+    
+    const tot = subtotalAfterPromo + tax;
+    
+    return { subtotal: sub, promoAmount: promo, taxAmount: tax, total: tot };
+  }, [currentOrder, taxPercent, promoPercent]);
 
   const handleTaxChange = (e) => {
     setTaxPercent(e.target.value);
+  };
+
+  const handlePromoChange = (e) => {
+    setPromoPercent(e.target.value);
   };
   
   const handleSelectCustomer = (customer) => {
@@ -56,15 +72,23 @@ export default function PosPage() {
     if (!table) return;
     
     const sub = newOrder.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+    
+    const numericPromo = Number(promoPercent);
+    const currentPromoPercent = isNaN(numericPromo) ? 0 : numericPromo;
+    const promo = sub * (currentPromoPercent / 100);
+    const subtotalAfterPromo = sub - promo;
+
     const numericTax = Number(taxPercent);
     const currentTaxPercent = isNaN(numericTax) ? 0 : numericTax;
-    const tax = sub * (currentTaxPercent / 100);
-    const tot = sub + tax;
+    const tax = subtotalAfterPromo * (currentTaxPercent / 100);
+    const tot = subtotalAfterPromo + tax;
 
     const orderData = {
       items: newOrder,
       totalAmount: tot,
       subtotal: sub,
+      promoPercent: currentPromoPercent,
+      promoAmount: promo,
       taxPercent: currentTaxPercent,
       taxAmount: tax,
       tableId: table.id,
@@ -93,7 +117,7 @@ export default function PosPage() {
         status: 'Order Taken'
       });
     }
-  }, [taxPercent]);
+  }, [taxPercent, promoPercent]);
 
   useEffect(() => {
     if (selectedTable) {
@@ -110,6 +134,7 @@ export default function PosPage() {
         const orderData = orderSnap.data();
         setCurrentOrder(orderData.items || []);
         setTaxPercent(orderData.taxPercent ?? 7);
+        setPromoPercent(orderData.promoPercent ?? 0);
         if(orderData.customerId) {
           const custRef = doc(db, 'customers', orderData.customerId);
           const custSnap = await getDoc(custRef);
@@ -122,6 +147,7 @@ export default function PosPage() {
       setCurrentOrder([]);
       setSelectedCustomer(null);
       setTaxPercent(7);
+      setPromoPercent(0);
     }
   }, []);
   
@@ -165,6 +191,8 @@ export default function PosPage() {
         items: currentOrder,
         totalAmount: total,
         subtotal: subtotal,
+        promoAmount: promoAmount,
+        promoPercent: Number(promoPercent) || 0,
         taxAmount: taxAmount,
         taxPercent: Number(taxPercent) || 0,
         paymentMethod,
@@ -256,7 +284,10 @@ export default function PosPage() {
             onClearOrder={handleClearOrder}
             taxPercent={taxPercent}
             onTaxChange={handleTaxChange}
+            promoPercent={promoPercent}
+            onPromoChange={handlePromoChange}
             subtotal={subtotal}
+            promoAmount={promoAmount}
             taxAmount={taxAmount}
             total={total}
           />

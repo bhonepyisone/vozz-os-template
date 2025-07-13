@@ -1,5 +1,3 @@
-// FILE: src/components/crm/CustomerTable.jsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
